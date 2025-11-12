@@ -54,7 +54,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String verificationToken = UUID.randomUUID().toString();
 
-        var user = User.builder()
+        User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
