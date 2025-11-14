@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.greeceri.store.models.entity.Address;
@@ -99,7 +100,7 @@ public class AddressServiceImpl implements AddressService {
     public List<AddressResponse> setMainAddress(User currentUser, String id) {
         Address newMainAddress = findAndValidateOwnership(currentUser, id);
 
-        Optional<Address> oldMainAddressOpt = addressRepository.findByUserAndMainAddress(currentUser, true);
+        Optional<Address> oldMainAddressOpt = addressRepository.findByUserAndIsMainAddress(currentUser, true);
 
         if (oldMainAddressOpt.isPresent()) {
             Address oldMainAddress = oldMainAddressOpt.get();

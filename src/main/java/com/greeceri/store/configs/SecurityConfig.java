@@ -41,6 +41,19 @@ public class SecurityConfig {
                                                 // callback xendit
                                                 .permitAll()
 
+                                                // Admin + User
+                                                .requestMatchers(
+                                                                "/api/user/profile"
+                                                )
+                                                .hasAnyAuthority("ADMIN", "USER")
+
+                                                // User
+                                                .requestMatchers(
+                                                                "/api/user/address",
+                                                                "/api/user/addres/**"
+                                                )
+                                                .hasAnyAuthority("USER")
+
                                                 .anyRequest().authenticated())
 
                                 .sessionManagement(session -> session

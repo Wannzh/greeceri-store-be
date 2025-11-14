@@ -12,6 +12,6 @@ import com.greeceri.store.models.entity.User;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, String> {
     List<Address> findByUser(User user);
-    Optional<Address> findByUserAndMainAddress(User user, boolean isMainAddress);
+    Optional<Address> findByUserAndIsMainAddress(User user, boolean isMainAddress);
 
 }
