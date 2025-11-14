@@ -36,10 +36,7 @@ public class SecurityConfig {
                                                                 "/swagger-ui.html",
                                                                 "/swagger-ui/**",
                                                                 "/webjars/swagger-ui/**",
-                                                                "/api/payments/callback",
-                                                                "/api/products",
-                                                                "/api/products/**",
-                                                                "/api/categories") // Jangan lupa tambahin
+                                                                "/api/payments/callback") // Jangan lupa tambahin
                                                                                           // endpoint untuk
                                                 // callback xendit
                                                 .permitAll()
@@ -53,7 +50,10 @@ public class SecurityConfig {
                                                 // User
                                                 .requestMatchers(
                                                                 "/api/user/address",
-                                                                "/api/user/addres/**"
+                                                                "/api/user/addres/**",
+                                                                "/api/products",
+                                                                "/api/products/**",
+                                                                "/api/categories"
                                                 )
                                                 .hasAnyAuthority("USER")
 
