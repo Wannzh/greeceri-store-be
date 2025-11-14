@@ -36,7 +36,10 @@ public class SecurityConfig {
                                                                 "/swagger-ui.html",
                                                                 "/swagger-ui/**",
                                                                 "/webjars/swagger-ui/**",
-                                                                "/api/payments/callback") // Jangan lupa tambahin
+                                                                "/api/payments/callback",
+                                                                "/api/products",
+                                                                "/api/products/**",
+                                                                "/api/categories") // Jangan lupa tambahin
                                                                                           // endpoint untuk
                                                 // callback xendit
                                                 .permitAll()

@@ -28,6 +28,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getProductsByCategoryId(Long categoryId) {
-        return productRepository.findByCategory(categoryId);
+        return productRepository.findByCategoryId(categoryId);
     }
 }
