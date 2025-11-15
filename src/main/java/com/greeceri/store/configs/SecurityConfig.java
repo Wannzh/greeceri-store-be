@@ -61,6 +61,11 @@ public class SecurityConfig {
                                                                 "/api/orders/**")
                                                 .hasAnyAuthority("USER")
 
+                                                // Admin
+                                                .requestMatchers(
+                                                                "/api/admin/**")
+                                                .hasAnyAuthority("ADMIN")
+
                                                 .anyRequest().authenticated())
 
                                 .sessionManagement(session -> session
