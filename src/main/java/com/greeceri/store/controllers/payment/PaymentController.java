@@ -1,19 +1,30 @@
-package com.greeceri.store.controllers;
+package com.greeceri.store.controllers.payment;
 
+import com.greeceri.store.models.entity.Order;
+import com.greeceri.store.models.enums.OrderStatus;
+import com.greeceri.store.repositories.OrderRepository;
 import com.xendit.exception.XenditException;
 import com.xendit.model.Invoice;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
+@RequiredArgsConstructor
 public class PaymentController {
 
+    private final OrderRepository orderRepository;
+
     @Value("${xendit.callback.token}")
-    private String myCallbackToken;
+    private String xenditCallbackToken;
 
     @PostMapping("/create-invoice")
     public Map<String, String> createInvoice(@RequestBody CreateInvoiceRequest request) {
@@ -45,36 +56,40 @@ public class PaymentController {
     }
 
     @PostMapping("/callback")
-    public String paymentCallback(@RequestBody Map<String, Object> body,
+    public ResponseEntity<String> paymentCallback(@RequestBody Map<String, Object> body,
             @RequestHeader(value = "x-callback-token", required = false) String callbackToken) {
 
-        // 1. Validasi Callback Token (PENTING UNTUK KEAMANAN)
-        // Bandingkan "callbackToken" dari header dengan token yang Anda set di
-        // Dashboard Xendit
-        String myToken = "RAHASIA_DARI_DASHBOARD_XENDIT"; // Ambil dari env/properties
-
-        if (!myToken.equals(callbackToken)) {
-            System.out.println("Callback Token Tidak Valid!");
-            // return 403 Forbidden atau sejenisnya
-            return "Error";
+        if (callbackToken == null || !callbackToken.equals(xenditCallbackToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid callback token");
         }
 
-        // 2. Proses datanya
-        System.out.println("Menerima Callback dari Xendit:");
-        System.out.println(body);
+        try {
+            String externalId = (String) body.get("external_id"); // Ini adalah Order ID kita
+            String status = (String) body.get("status");
 
-        String externalId = (String) body.get("external_id");
-        String status = (String) body.get("status");
+            // 3. Cari Order di database
+            Order order = orderRepository.findById(externalId)
+                    .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan: " + externalId));
 
-        if ("PAID".equals(status)) {
-            // Logika bisnis Anda
-            // Contoh: panggil service untuk update status order di database Anda
-            // UPDATE orders SET status = 'LUNAS' WHERE id = externalId;
-            System.out.println("Order " + externalId + " telah LUNAS.");
+            // 4. Update status pesanan
+            if ("PAID".equals(status) || "SETTLED".equals(status)) {
+                if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
+                    order.setStatus(OrderStatus.PAID);
+                    orderRepository.save(order);
+                }
+            } else if ("EXPIRED".equals(status)) {
+                // (Opsional: Handle jika invoice kedaluwarsa)
+                order.setStatus(OrderStatus.CANCELLED);
+                orderRepository.save(order);
+            }
+            
+            // 5. Kembalikan 200 OK agar Xendit tahu
+            return ResponseEntity.ok("Callback received successfully");
+
+        } catch (Exception e) {
+            // Tangani error jika data tidak valid
+            return ResponseEntity.badRequest().body("Error processing callback: " + e.getMessage());
         }
-
-        // Balas dengan HTTP 200 OK agar Xendit tahu callback diterima
-        return "OK";
     }
 }
 

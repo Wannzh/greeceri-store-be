@@ -43,7 +43,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final TemplateEngine templateEngine;
     private final PasswordResetTokenRepository tokenRepository;
 
-    @Value("${app.base.url}")
+    @Value("${app.password.reset.url")
     private String appBaseUrl;
 
     @Value("${app.logo.url}")
@@ -103,15 +103,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             userRepository.save(user);
 
             sendVerificationEmail(user, newVerificationToken);
-
-            return AuthenticationResponse.builder()
-                    .token("Verification email resent. Please check your inbox.")
-                    .build();
-        } else {
-            return AuthenticationResponse.builder()
-                    .token("User not found or already verified.")
-                    .build();
         }
+        return AuthenticationResponse.builder()
+                .token("If your email is registered, a new verification email has been sent.")
+                .build();
     }
 
     @Override
@@ -188,7 +183,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String subject = "Greeceri Store Password Reset Request";
 
         // Gunakan EmailService (interface) untuk mengirim
-        emailService.sendEmail(user.getEmail(), subject, htmlBody); 
+        emailService.sendEmail(user.getEmail(), subject, htmlBody);
     }
 
 }

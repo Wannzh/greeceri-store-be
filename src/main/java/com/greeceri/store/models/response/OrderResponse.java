@@ -17,4 +17,5 @@ public class OrderResponse {
     private Double totalPrice;
     private AddressResponse shippingAddress;
     private List<OrderItemResponse> items;
+    private String paymentUrl; // invoice 
 }

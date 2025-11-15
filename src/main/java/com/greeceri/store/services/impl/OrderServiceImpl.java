@@ -1,9 +1,12 @@
 package com.greeceri.store.services.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,8 @@ import com.greeceri.store.repositories.OrderItemRepository;
 import com.greeceri.store.repositories.OrderRepository;
 import com.greeceri.store.repositories.ProductRepository;
 import com.greeceri.store.services.OrderService;
+import com.xendit.exception.XenditException;
+import com.xendit.model.Invoice;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +43,13 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository; // Untuk update stok
+
+    // Payment Gateway
+    @Value("${app.payment.redirect.success}")
+    private String successRedirectUrl;
+
+    @Value("${app.payment.redirect.failure}")
+    private String failureRedirectUrl;
 
     @Override
     @Transactional
@@ -100,11 +112,41 @@ public class OrderServiceImpl implements OrderService {
         // Simpan Order (dan OrderItem-nya via cascade)
         Order savedOrder = orderRepository.save(newOrder);
 
+        // Get Invoice Payment Gateway
+        String invoiceUrl;
+        String xenditInvoiceId;
+
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put("external_id", savedOrder.getId());
+            params.put("amount", savedOrder.getTotalPrice());
+            params.put("payer_email", currentUser.getEmail());
+            params.put("description", "Payment for Greeceri Orders #" + savedOrder.getId());
+            params.put("success_redirect_url", successRedirectUrl + "?orderId=" + savedOrder.getId());
+            params.put("failure_redirect_url", failureRedirectUrl + "?orderId=" + savedOrder.getId());
+
+            Invoice invoice = Invoice.create(params);
+            invoiceUrl = invoice.getInvoiceUrl();
+            xenditInvoiceId = invoice.getId();
+        } catch (XenditException e) {
+            // Jika gagal, rollback transaksi
+            throw new RuntimeException("Failed to create payment invoice:" + e.getMessage());
+        }
+
+        // Update Order dengan Id Xendit
+        savedOrder.setXenditInvoiceId(xenditInvoiceId);
+        orderRepository.save(savedOrder);
+
         // Kosongkan Keranjang
-        cartItemRepository.deleteAll(cart.getItems());
+        cart.getItems().clear();
+        cartRepository.save(cart);
+
+        // Return DTO + PaymentUrl
+        OrderResponse response = mapOrderToResponse(savedOrder);
+        response.setPaymentUrl(invoiceUrl);
 
         // Kembalikan DTO
-        return mapOrderToResponse(savedOrder);
+        return response;
     }
 
     @Override

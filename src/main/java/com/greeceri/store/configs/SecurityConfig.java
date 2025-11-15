@@ -36,6 +36,12 @@ public class SecurityConfig {
                                                                 "/swagger-ui.html",
                                                                 "/swagger-ui/**",
                                                                 "/webjars/swagger-ui/**",
+                                                                // Untuk Product
+                                                                "/api/products",
+                                                                "/api/products/**",
+                                                                "/api/categories",
+                                                                "/api/categories/**",
+                                                                // Xendit
                                                                 "/api/payments/callback") // Jangan lupa tambahin
                                                                                           // endpoint untuk
                                                 // callback xendit
@@ -43,21 +49,16 @@ public class SecurityConfig {
 
                                                 // Admin + User
                                                 .requestMatchers(
-                                                                "/api/user/profile"
-                                                )
+                                                                "/api/user/profile")
                                                 .hasAnyAuthority("ADMIN", "USER")
 
                                                 // User
                                                 .requestMatchers(
                                                                 "/api/user/address",
                                                                 "/api/user/addres/**",
-                                                                "/api/products",
-                                                                "/api/products/**",
-                                                                "/api/categories",
                                                                 "/api/cart",
                                                                 "/api/cart/**",
-                                                                "/api/orders/**"
-                                                )
+                                                                "/api/orders/**")
                                                 .hasAnyAuthority("USER")
 
                                                 .anyRequest().authenticated())

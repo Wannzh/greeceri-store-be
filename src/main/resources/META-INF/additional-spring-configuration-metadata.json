@@ -58,5 +58,10 @@
     "name": "app.verification.redirect.failure",
     "type": "java.lang.String",
     "description": "A description for 'app.verification.redirect.failure'"
+  },
+  {
+    "name": "app.password.reset.url",
+    "type": "java.lang.String",
+    "description": "A description for 'app.password.reset.url'"
   }
 ]}
