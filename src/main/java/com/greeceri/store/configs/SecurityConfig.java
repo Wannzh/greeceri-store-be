@@ -55,7 +55,7 @@ public class SecurityConfig {
                                                 // User
                                                 .requestMatchers(
                                                                 "/api/user/address",
-                                                                "/api/user/addres/**",
+                                                                "/api/user/address/**",
                                                                 "/api/cart",
                                                                 "/api/cart/**",
                                                                 "/api/orders/**")

@@ -1,6 +1,7 @@
 package com.greeceri.store.services.impl;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.request.UpdateProfileRequest;
@@ -8,7 +9,6 @@ import com.greeceri.store.models.response.UserProfileResponse;
 import com.greeceri.store.repositories.UserRepository;
 import com.greeceri.store.services.ProfileService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service

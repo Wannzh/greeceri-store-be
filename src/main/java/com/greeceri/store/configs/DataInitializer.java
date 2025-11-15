@@ -17,13 +17,13 @@ import org.springframework.beans.factory.annotation.Value;
 @Slf4j
 public class DataInitializer{
 
-    @Value("${ADMIN_EMAIL}")
+    @Value("${admin.email}")
     private String adminEmail;
 
-    @Value("${ADMIN_PASSWORD}")
+    @Value("${admin.password}")
     private String adminPassword;
 
-    @Value("${ADMIN_USERNAME}")
+    @Value("${admin.username}")
     private String adminUsername;
 
     @Bean

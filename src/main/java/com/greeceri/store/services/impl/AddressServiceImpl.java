@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.greeceri.store.models.entity.Address;
 import com.greeceri.store.models.entity.User;
@@ -13,7 +14,6 @@ import com.greeceri.store.models.response.AddressResponse;
 import com.greeceri.store.repositories.AddressRepository;
 import com.greeceri.store.services.AddressService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service

@@ -1,0 +1,13 @@
+# Abaikan folder build lokal
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Abaikan file Git
+.git
+.gitignore
+.gitattributes
+
+# Abaikan file IDE
+.idea/
+.vscode/
+*.iml

@@ -43,8 +43,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final TemplateEngine templateEngine;
     private final PasswordResetTokenRepository tokenRepository;
 
-    @Value("${app.password.reset.url")
+    @Value("${app.base.url}")
     private String appBaseUrl;
+
+    @Value("${app.password.reset.url}")
+    private String passwordResetUrl;
 
     @Value("${app.logo.url}")
     private String appLogoUrl;
@@ -171,7 +174,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private void sendPasswordResetEmail(User user, String token) {
-        String resetLink = appBaseUrl + "/reset-password?token=" + token;
+        String resetLink = passwordResetUrl + "?token=" + token;
 
         Context context = new Context();
         context.setVariable("name", user.getName());
