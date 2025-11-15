@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.greeceri.store.models.entity.Cart;
 import com.greeceri.store.models.entity.CartItem;
@@ -16,9 +17,9 @@ import com.greeceri.store.models.response.CartResponse;
 import com.greeceri.store.repositories.CartItemRepository;
 import com.greeceri.store.repositories.CartRepository;
 import com.greeceri.store.repositories.ProductRepository;
+import com.greeceri.store.repositories.UserRepository;
 import com.greeceri.store.services.CartService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,6 +28,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -98,9 +100,9 @@ public class CartServiceImpl implements CartService {
         }
 
         // Hapus Item
-        cartItemRepository.delete(itemToRemove);
+        cart.removeItem(itemToRemove);
 
-        return mapCartToResponse(cartRepository.findByUser(currentUser).get());
+        return mapCartToResponse(cart);
     }
 
     @Override
@@ -108,9 +110,9 @@ public class CartServiceImpl implements CartService {
     public CartResponse clearCart(User currentUser) {
         Cart cart = getOrCreateCart(currentUser);
 
-        cartItemRepository.deleteAll(cart.getItems());
+        cart.getItems().clear();
 
-        return mapCartToResponse(cartRepository.findByUser(currentUser).get());
+        return mapCartToResponse(cart);
     }
 
     private Cart getOrCreateCart(User user) {
@@ -119,8 +121,11 @@ public class CartServiceImpl implements CartService {
         if (cartOpt.isPresent()) {
             return cartOpt.get();
         } else {
+            User managedUser = userRepository.findById(user.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found when creating cart"));
+
             Cart newCart = new Cart();
-            newCart.setUser(user);
+            newCart.setUser(managedUser);
             return cartRepository.save(newCart);
         }
     }
