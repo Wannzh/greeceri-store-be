@@ -55,7 +55,8 @@ public class SecurityConfig {
                                                                 "/api/products/**",
                                                                 "/api/categories",
                                                                 "/api/cart",
-                                                                "/api/cart/**"
+                                                                "/api/cart/**",
+                                                                "/api/orders/**"
                                                 )
                                                 .hasAnyAuthority("USER")
 
