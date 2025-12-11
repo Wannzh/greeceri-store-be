@@ -21,6 +21,8 @@ import com.greeceri.store.models.request.RegisterRequest;
 import com.greeceri.store.models.request.ResendVerificationRequest;
 import com.greeceri.store.models.request.ResetPasswordRequest;
 import com.greeceri.store.models.response.AuthenticationResponse;
+import com.greeceri.store.models.response.GeneralResponse;
+import com.greeceri.store.models.response.GenericResponse;
 import com.greeceri.store.repositories.UserRepository;
 import com.greeceri.store.services.AuthenticationService;
 
@@ -41,23 +43,28 @@ public class AuthController {
     private String failureRedirectUrl;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<GenericResponse<AuthenticationResponse>> register(@RequestBody RegisterRequest request) {
         AuthenticationResponse response = authenticationService.register(request);
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new GenericResponse<>(true, "Registration successful. Please check your email.", response));
 
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<GenericResponse<AuthenticationResponse>> login(@RequestBody LoginRequest request) {
         AuthenticationResponse response = authenticationService.login(request);
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                new GenericResponse<>(true, "Login Successful", response));
     }
 
     @PostMapping("/resend-verification")
-    public ResponseEntity<AuthenticationResponse> resendVerificationEmail(
+    public ResponseEntity<GeneralResponse> resendVerificationEmail(
             @RequestBody ResendVerificationRequest request) {
-        AuthenticationResponse response = authenticationService.resendVerificationEmail(request);
-        return ResponseEntity.ok(response);
+        authenticationService.resendVerificationEmail(request);
+
+        return ResponseEntity.ok(new GeneralResponse(true, "Verification email resent"));
     }
 
     @GetMapping("/verify")
@@ -95,14 +102,20 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<AuthenticationResponse> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        AuthenticationResponse response = authenticationService.forgotPassword(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<GeneralResponse> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        authenticationService.forgotPassword(request);
+        
+        return ResponseEntity.ok(
+            new GeneralResponse(true, "If the email is registered, a password reset link has been sent.")
+        );
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<AuthenticationResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
-        AuthenticationResponse response = authenticationService.resetPassword(request);
-        return ResponseEntity.ok(response);
+   public ResponseEntity<GeneralResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authenticationService.resetPassword(request);
+
+        return ResponseEntity.ok(
+            new GeneralResponse(true, "Password has been successfully reset.")
+        );
     }
 }

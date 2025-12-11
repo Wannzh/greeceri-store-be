@@ -72,7 +72,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         sendVerificationEmail(user, verificationToken);
 
         return AuthenticationResponse.builder()
-                .token("Registration successful. Please verify your email to activate your account.")
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .accessToken(null) 
+                .refreshToken(null)
                 .build();
     }
 
@@ -87,14 +92,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
 
         return AuthenticationResponse.builder()
-                .token(jwtToken)
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .id(user.getId())          
+                .name(user.getName())      
+                .email(user.getEmail())     
+                .role(user.getRole().name())
                 .build();
     }
 
     @Override
-    public AuthenticationResponse resendVerificationEmail(ResendVerificationRequest request) {
+    public void resendVerificationEmail(ResendVerificationRequest request) {
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
         if (userOptional.isPresent() && !userOptional.get().isEnabled()) {
@@ -107,13 +118,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             sendVerificationEmail(user, newVerificationToken);
         }
-        return AuthenticationResponse.builder()
-                .token("If your email is registered, a new verification email has been sent.")
-                .build();
     }
 
     @Override
-    public AuthenticationResponse forgotPassword(ForgotPasswordRequest request) {
+    public void forgotPassword(ForgotPasswordRequest request) {
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
         if (userOptional.isPresent()) {
@@ -125,14 +133,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             sendPasswordResetEmail(user, token);
         }
-
-        return AuthenticationResponse.builder()
-                .token("If the email is registered, a password reset link has been sent.")
-                .build();
     }
 
     @Override
-    public AuthenticationResponse resetPassword(ResetPasswordRequest request) {
+   public void resetPassword(ResetPasswordRequest request) {
         Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(request.getToken());
 
         if (tokenOptional.isEmpty()) {
@@ -151,10 +155,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userRepository.save(user);
 
         tokenRepository.delete(resetToken);
-
-        return AuthenticationResponse.builder()
-                .token("Password has been successfully reset.")
-                .build();
     }
 
     private void sendVerificationEmail(User user, String token) {

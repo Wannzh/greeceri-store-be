@@ -10,7 +10,7 @@ import com.greeceri.store.models.response.AuthenticationResponse;
 public interface AuthenticationService {
     AuthenticationResponse register(RegisterRequest request);
     AuthenticationResponse login(LoginRequest request);
-    AuthenticationResponse resendVerificationEmail(ResendVerificationRequest email);
-    AuthenticationResponse forgotPassword(ForgotPasswordRequest request);
-    AuthenticationResponse resetPassword(ResetPasswordRequest request);
+    void resendVerificationEmail(ResendVerificationRequest request);
+    void forgotPassword(ForgotPasswordRequest request);
+    void resetPassword(ResetPasswordRequest request);
 }
