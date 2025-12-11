@@ -17,6 +17,8 @@ import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.request.CheckoutRequest;
 import com.greeceri.store.models.response.OrderResponse;
 import com.greeceri.store.services.OrderService;
+import com.greeceri.store.models.response.GenericResponse;
+import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,30 +29,30 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/checkout")
-    public ResponseEntity<OrderResponse> createOrder(
+    public ResponseEntity<GenericResponse<OrderResponse>> createOrder(
             @AuthenticationPrincipal UserDetails currentUserDetails,
-            @RequestBody CheckoutRequest request
-    ) {
+            @Valid @RequestBody CheckoutRequest request) {
         User currentUser = (User) currentUserDetails;
-        // Kita return 201 CREATED karena ini membuat resource baru
+        OrderResponse created = orderService.createOrderFromCart(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(orderService.createOrderFromCart(currentUser, request));
+                .body(new GenericResponse<>(true, "Order created successfully", created));
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<OrderResponse>> getMyOrderHistory(
-            @AuthenticationPrincipal UserDetails currentUserDetails
-    ) {
+    public ResponseEntity<GenericResponse<List<OrderResponse>>> getMyOrderHistory(
+            @AuthenticationPrincipal UserDetails currentUserDetails) {
         User currentUser = (User) currentUserDetails;
-        return ResponseEntity.ok(orderService.getMyOrders(currentUser));
+        List<OrderResponse> orders = orderService.getMyOrders(currentUser);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Order history retrieved successfully", orders));
     }
 
     @GetMapping("/my/{orderId}")
-    public ResponseEntity<OrderResponse> getMyOrderDetails(
+    public ResponseEntity<GenericResponse<OrderResponse>> getMyOrderDetails(
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @PathVariable String orderId // ID adalah String (UUID)
     ) {
         User currentUser = (User) currentUserDetails;
-        return ResponseEntity.ok(orderService.getMyOrderDetails(currentUser, orderId));
+        OrderResponse details = orderService.getMyOrderDetails(currentUser, orderId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Order details retrieved successfully", details));
     }
 }

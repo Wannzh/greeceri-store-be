@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.entity.Category;
 import com.greeceri.store.models.request.AdminCategoryRequest;
+import com.greeceri.store.models.response.GenericResponse;
+import com.greeceri.store.models.response.GeneralResponse;
 import com.greeceri.store.services.AdminCategoryService;
 
 import jakarta.validation.Valid;
@@ -24,27 +26,25 @@ public class AdminCategoryController {
     private final AdminCategoryService adminCategoryService;
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(
-            @Valid @RequestBody AdminCategoryRequest request
-    ) {
+    public ResponseEntity<GenericResponse<Category>> createCategory(
+            @Valid @RequestBody AdminCategoryRequest request) {
         Category newCategory = adminCategoryService.createCategory(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCategory);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new GenericResponse<>(true, "Category created successfully", newCategory));
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<Category> updateCategory(
+    public ResponseEntity<GenericResponse<Category>> updateCategory(
             @PathVariable Long categoryId,
-            @Valid @RequestBody AdminCategoryRequest request
-    ) {
+            @Valid @RequestBody AdminCategoryRequest request) {
         Category updatedCategory = adminCategoryService.updateCategory(categoryId, request);
-        return ResponseEntity.ok(updatedCategory);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Category updated successfully", updatedCategory));
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> deleteCategory(
-            @PathVariable Long categoryId
-    ) {
+    public ResponseEntity<GeneralResponse> deleteCategory(
+            @PathVariable Long categoryId) {
         adminCategoryService.deleteCategory(categoryId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new GeneralResponse(true, "Category deleted successfully"));
     }
 }

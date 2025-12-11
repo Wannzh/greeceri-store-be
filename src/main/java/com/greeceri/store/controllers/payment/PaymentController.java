@@ -2,6 +2,9 @@ package com.greeceri.store.controllers.payment;
 
 import com.greeceri.store.models.entity.Order;
 import com.greeceri.store.models.enums.OrderStatus;
+import com.greeceri.store.models.request.CreateInvoiceRequest;
+import com.greeceri.store.models.response.GeneralResponse;
+import com.greeceri.store.models.response.GenericResponse;
 import com.greeceri.store.repositories.OrderRepository;
 import com.xendit.exception.XenditException;
 import com.xendit.model.Invoice;
@@ -13,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +31,8 @@ public class PaymentController {
     private String xenditCallbackToken;
 
     @PostMapping("/create-invoice")
-    public Map<String, String> createInvoice(@RequestBody CreateInvoiceRequest request) {
+    public ResponseEntity<GenericResponse<Map<String, String>>> createInvoice(
+            @Valid @RequestBody CreateInvoiceRequest request) {
         try {
             Map<String, Object> params = new HashMap<>();
 
@@ -42,25 +47,22 @@ public class PaymentController {
             // Yang Anda perlukan adalah invoice_url
             String invoiceUrl = invoice.getInvoiceUrl();
 
-            Map<String, String> response = new HashMap<>();
-            response.put("invoice_url", invoiceUrl);
+            Map<String, String> responseData = new HashMap<>();
+            responseData.put("invoice_url", invoiceUrl);
 
-            return response;
+            return ResponseEntity.ok(new GenericResponse<>(true, "Invoice created successfully", responseData));
 
         } catch (XenditException e) {
-            e.printStackTrace();
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getMessage());
-            return errorResponse;
+            throw new RuntimeException("Failed to create invoice: " + e.getMessage());
         }
     }
 
     @PostMapping("/callback")
-    public ResponseEntity<String> paymentCallback(@RequestBody Map<String, Object> body,
+    public ResponseEntity<GeneralResponse> paymentCallback(@RequestBody Map<String, Object> body,
             @RequestHeader(value = "x-callback-token", required = false) String callbackToken) {
 
         if (callbackToken == null || !callbackToken.equals(xenditCallbackToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid callback token");
+            throw new RuntimeException("Invalid callback token");
         }
 
         try {
@@ -69,7 +71,7 @@ public class PaymentController {
 
             // 3. Cari Order di database
             Order order = orderRepository.findById(externalId)
-                    .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan: " + externalId));
+                    .orElseThrow(() -> new RuntimeException("Order not found: " + externalId));
 
             // 4. Update status pesanan
             if ("PAID".equals(status) || "SETTLED".equals(status)) {
@@ -84,34 +86,11 @@ public class PaymentController {
             }
             
             // 5. Kembalikan 200 OK agar Xendit tahu
-            return ResponseEntity.ok("Callback received successfully");
+            return ResponseEntity.ok(new GeneralResponse(true, "Payment callback processed successfully"));
 
         } catch (Exception e) {
             // Tangani error jika data tidak valid
-            return ResponseEntity.badRequest().body("Error processing callback: " + e.getMessage());
+            throw new RuntimeException("Error processing callback: " + e.getMessage());
         }
-    }
-}
-
-// Buat class DTO (Data Transfer Object) sederhana untuk menampung request body
-class CreateInvoiceRequest {
-    private String externalId;
-    private Number amount;
-
-    // Tambahkan Getter dan Setter
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public Number getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Number amount) {
-        this.amount = amount;
     }
 }

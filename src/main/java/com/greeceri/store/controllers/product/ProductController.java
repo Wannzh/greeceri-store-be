@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.entity.Product;
+import com.greeceri.store.models.response.GenericResponse;
 import com.greeceri.store.services.ProductService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,19 +22,21 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts(
+    public ResponseEntity<GenericResponse<List<Product>>> getAllProducts(
             @RequestParam(required = false) Long categoryId) {
-
+        List<Product> products;
         if (categoryId != null) {
-            return ResponseEntity.ok(productService.getProductsByCategoryId(categoryId));
+            products = productService.getProductsByCategoryId(categoryId);
         } else {
-            return ResponseEntity.ok(productService.getAllProducts());
+            products = productService.getAllProducts();
         }
+        return ResponseEntity.ok(new GenericResponse<>(true, "Products retrieved successfully", products));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> getProductById(
+    public ResponseEntity<GenericResponse<Product>> getProductById(
             @PathVariable Long productId) {
-        return ResponseEntity.ok(productService.getProductById(productId));
+        Product product = productService.getProductById(productId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Product retrieved successfully", product));
     }
 }

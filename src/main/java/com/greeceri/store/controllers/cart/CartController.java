@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.request.CartRequest;
 import com.greeceri.store.models.response.CartResponse;
+import com.greeceri.store.models.response.GenericResponse;
+import com.greeceri.store.models.response.GeneralResponse;
 import com.greeceri.store.services.CartService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,35 +28,39 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping
-    public ResponseEntity<CartResponse> getMyCart(@AuthenticationPrincipal UserDetails currentUserDetails) {
+    public ResponseEntity<GenericResponse<CartResponse>> getMyCart(@AuthenticationPrincipal UserDetails currentUserDetails) {
         User currentUser = (User) currentUserDetails;
-        return ResponseEntity.ok(cartService.getCart(currentUser));
+        CartResponse cart = cartService.getCart(currentUser);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Cart retrieved successfully", cart));
     }
 
     @PostMapping("/item")
-    public ResponseEntity<CartResponse> addItemToMyCart(
+    public ResponseEntity<GenericResponse<CartResponse>> addItemToMyCart(
             @AuthenticationPrincipal UserDetails currentUserDetails,
-            @RequestBody CartRequest request) {
+            @Valid @RequestBody CartRequest request) {
         User currentUser = (User) currentUserDetails;
 
-        return ResponseEntity.ok(cartService.addItemToCart(currentUser, request));
+        CartResponse updated = cartService.addItemToCart(currentUser, request);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Item added/updated successfully", updated));
     }
 
     @DeleteMapping("/item/{cartItemId}")
-    public ResponseEntity<CartResponse> removeItemMyCart(
+    public ResponseEntity<GenericResponse<CartResponse>> removeItemMyCart(
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @PathVariable Long cartItemId) {
         User currentUser = (User) currentUserDetails;
 
-        return ResponseEntity.ok(cartService.removeItemFromCart(currentUser, cartItemId));
+        CartResponse updated = cartService.removeItemFromCart(currentUser, cartItemId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Item removed successfully", updated));
     }
 
     @DeleteMapping
-    public ResponseEntity<CartResponse> clearMyCart(
+    public ResponseEntity<GenericResponse<CartResponse>> clearMyCart(
             @AuthenticationPrincipal UserDetails currentUserDetails)
 
     {
         User currentUser = (User) currentUserDetails;
-        return ResponseEntity.ok(cartService.clearCart(currentUser));
+        CartResponse cleared = cartService.clearCart(currentUser);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Cart cleared successfully", cleared));
     }
 }

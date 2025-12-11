@@ -19,10 +19,13 @@ import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.request.AddressRequest;
 import com.greeceri.store.models.request.UpdateProfileRequest;
 import com.greeceri.store.models.response.AddressResponse;
+import com.greeceri.store.models.response.GenericResponse;
+import com.greeceri.store.models.response.GeneralResponse;
 import com.greeceri.store.models.response.UserProfileResponse;
 import com.greeceri.store.services.AddressService;
 import com.greeceri.store.services.ProfileService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,66 +36,66 @@ public class ProfileController {
     private final AddressService addressService;
 
     @GetMapping("/profile")
-    public ResponseEntity<UserProfileResponse> getAllMyProfile(
+    public ResponseEntity<GenericResponse<UserProfileResponse>> getAllMyProfile(
             @AuthenticationPrincipal UserDetails currentUserDetails) {
         User currentUser = (User) currentUserDetails;
-        return ResponseEntity.ok(profileService.getProfile(currentUser));
+        UserProfileResponse profileData = profileService.getProfile(currentUser);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Profile retrieved successfully", profileData));
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<UserProfileResponse> updateMyProfile(@AuthenticationPrincipal UserDetails currentUserDetails,
-            @RequestBody UpdateProfileRequest request) {
+    public ResponseEntity<GenericResponse<UserProfileResponse>> updateMyProfile(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @Valid @RequestBody UpdateProfileRequest request) {
         User currentUser = (User) currentUserDetails;
-
-        return ResponseEntity.ok(profileService.updateProfile(currentUser, request));
+        UserProfileResponse updatedProfile = profileService.updateProfile(currentUser, request);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Profile updated successfully", updatedProfile));
     }
 
     @GetMapping("/address")
-    public ResponseEntity<List<AddressResponse>> getAllMyAddresses(
+    public ResponseEntity<GenericResponse<List<AddressResponse>>> getAllMyAddresses(
             @AuthenticationPrincipal UserDetails currentUserDetails) {
         User currentUser = (User) currentUserDetails;
-        return ResponseEntity.ok(addressService.getAllAddressesForUser(currentUser));
+        List<AddressResponse> addresses = addressService.getAllAddressesForUser(currentUser);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Addresses retrieved successfully", addresses));
     }
 
     @PostMapping("/address")
-    public ResponseEntity<AddressResponse> addNewAddress(
+    public ResponseEntity<GenericResponse<AddressResponse>> addNewAddress(
             @AuthenticationPrincipal UserDetails currentUserDetails,
-            @RequestBody AddressRequest request) {
+            @Valid @RequestBody AddressRequest request) {
         User currentUser = (User) currentUserDetails;
-        // return 201 CREATED karena ini membuat resource baru
+        AddressResponse newAddress = addressService.addAddress(currentUser, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(addressService.addAddress(currentUser, request));
+                .body(new GenericResponse<>(true, "Address added successfully", newAddress));
     }
 
     @PutMapping("/address/{addressId}")
-    public ResponseEntity<AddressResponse> updateMyAddress(
+    public ResponseEntity<GenericResponse<AddressResponse>> updateMyAddress(
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @PathVariable String addressId,
-            @RequestBody AddressRequest request) {
+            @Valid @RequestBody AddressRequest request) {
         User currentUser = (User) currentUserDetails;
-
-        return ResponseEntity.ok(addressService.updateAddress(currentUser, addressId, request));
+        AddressResponse updatedAddress = addressService.updateAddress(currentUser, addressId, request);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Address updated successfully", updatedAddress));
     }
 
     @DeleteMapping("/address/{addressId}")
-    public ResponseEntity<Void> deleteMyAddress(
+    public ResponseEntity<GeneralResponse> deleteMyAddress(
             @AuthenticationPrincipal UserDetails currentUserDetails,
-            @PathVariable String addressId
-    ) {
+            @PathVariable String addressId) {
         User currentUser = (User) currentUserDetails;
         addressService.deleteAddress(currentUser, addressId);
-        // return 204 NO CONTENT (standar untuk DELETE sukses)
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new GeneralResponse(true, "Address deleted successfully"));
     }
 
     @PutMapping("/address/{addressId}/set-main")
-    public ResponseEntity<List<AddressResponse>> setMainAddress(
+    public ResponseEntity<GenericResponse<List<AddressResponse>>> setMainAddress(
             @AuthenticationPrincipal UserDetails currentUserDetails,
-            @PathVariable String addressId
-    ) {
+            @PathVariable String addressId) {
         User currentUser = (User) currentUserDetails;
-        // Mengembalikan daftar alamat yang sudah ter-update
-        return ResponseEntity.ok(addressService.setMainAddress(currentUser, addressId));
+        List<AddressResponse> updatedAddresses = addressService.setMainAddress(currentUser, addressId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Main address updated successfully", updatedAddresses));
     }
 
 }

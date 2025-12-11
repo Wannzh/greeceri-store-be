@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.entity.Category;
+import com.greeceri.store.models.response.GenericResponse;
 import com.greeceri.store.services.CategoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,8 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
+    public ResponseEntity<GenericResponse<List<Category>>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(new GenericResponse<>(true, "Categories retrieved successfully", categories));
     }
 }

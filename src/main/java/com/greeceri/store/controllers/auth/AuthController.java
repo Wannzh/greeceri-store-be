@@ -26,6 +26,7 @@ import com.greeceri.store.models.response.GenericResponse;
 import com.greeceri.store.repositories.UserRepository;
 import com.greeceri.store.services.AuthenticationService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -43,7 +44,7 @@ public class AuthController {
     private String failureRedirectUrl;
 
     @PostMapping("/register")
-    public ResponseEntity<GenericResponse<AuthenticationResponse>> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<GenericResponse<AuthenticationResponse>> register(@Valid @RequestBody RegisterRequest request) {
         AuthenticationResponse response = authenticationService.register(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -52,7 +53,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<GenericResponse<AuthenticationResponse>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<GenericResponse<AuthenticationResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthenticationResponse response = authenticationService.login(request);
 
         return ResponseEntity.ok(

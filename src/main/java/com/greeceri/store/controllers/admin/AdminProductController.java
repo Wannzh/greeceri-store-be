@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.entity.Product;
 import com.greeceri.store.models.request.AdminProductRequest;
+import com.greeceri.store.models.response.GenericResponse;
+import com.greeceri.store.models.response.GeneralResponse;
 import com.greeceri.store.services.AdminProductService;
 
 import jakarta.validation.Valid;
@@ -24,27 +26,25 @@ public class AdminProductController {
     private final AdminProductService adminProductService;
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(
-            @Valid @RequestBody AdminProductRequest request
-    ) {
+    public ResponseEntity<GenericResponse<Product>> createProduct(
+            @Valid @RequestBody AdminProductRequest request) {
         Product newProduct = adminProductService.createProduct(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newProduct);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new GenericResponse<>(true, "Product created successfully", newProduct));
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<Product> updateProduct(
+    public ResponseEntity<GenericResponse<Product>> updateProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody AdminProductRequest request
-    ) {
+            @Valid @RequestBody AdminProductRequest request) {
         Product updatedProduct = adminProductService.updateProduct(productId, request);
-        return ResponseEntity.ok(updatedProduct);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Product updated successfully", updatedProduct));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(
-            @PathVariable Long productId
-    ) {
+    public ResponseEntity<GeneralResponse> deleteProduct(
+            @PathVariable Long productId) {
         adminProductService.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new GeneralResponse(true, "Product deleted successfully"));
     }
 }
