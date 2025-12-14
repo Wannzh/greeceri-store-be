@@ -17,6 +17,7 @@ import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.enums.Role;
 import com.greeceri.store.models.request.ForgotPasswordRequest;
 import com.greeceri.store.models.request.LoginRequest;
+import com.greeceri.store.models.request.RefreshTokenRequest;
 import com.greeceri.store.models.request.RegisterRequest;
 import com.greeceri.store.models.request.ResendVerificationRequest;
 import com.greeceri.store.models.request.ResetPasswordRequest;
@@ -102,6 +103,38 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .email(user.getEmail())     
                 .role(user.getRole().name())
                 .build();
+    }
+
+    @Override
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        
+        // Ambil email user dari token
+        String userEmail = jwtService.extractUsername(refreshToken);
+        
+        if (userEmail != null) {
+            // Cek apakah user ada
+            var user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Validasi Refresh Token (apakah expired atau valid signature)
+            if (jwtService.isTokenValid(refreshToken, user)) {
+                
+                // Generate Access Token Baru
+                var newAccessToken = jwtService.generateToken(user);
+                
+                return AuthenticationResponse.builder()
+                        .accessToken(newAccessToken)
+                        .refreshToken(refreshToken)
+                        .id(user.getId())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .role(user.getRole().name())
+                        .build();
+            }
+        }
+        
+        throw new RuntimeException("Invalid or Expired Refresh Token");
     }
 
     @Override
