@@ -50,7 +50,7 @@ public class SecurityConfig {
                                                 // Admin + User
                                                 .requestMatchers(
                                                                 "/api/user/profile")
-                                                .hasAnyRole("ADMIN", "USER")
+                                                .hasAnyAuthority("ADMIN", "USER")
 
                                                 // User
                                                 .requestMatchers(
@@ -59,12 +59,12 @@ public class SecurityConfig {
                                                                 "/api/cart",
                                                                 "/api/cart/**",
                                                                 "/api/orders/**")
-                                                .hasRole("USER")
+                                                .hasAnyAuthority("USER")
 
                                                 // Admin
                                                 .requestMatchers(
                                                                 "/api/admin/**")
-                                                .hasRole("ADMIN")
+                                                .hasAnyAuthority("ADMIN")
 
                                                 .anyRequest().authenticated())
 
