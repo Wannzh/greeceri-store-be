@@ -8,7 +8,8 @@ import lombok.Data;
 public class OrderItemResponse {
     private Long productId;
     private String productName;
-    private Double priceAtPurchase; // Harga "snapshot"
+    private String productImageUrl;
+    private Double priceAtPurchase;
     private int quantity;
     private Double subTotal;
 }

@@ -38,9 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final CartRepository cartRepository;
-    private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository; // Untuk update stok
 
@@ -117,6 +115,10 @@ public class OrderServiceImpl implements OrderService {
 
             grandTotal += (product.getPrice() * cartItem.getQuantity());
         }
+        // biaya layanan
+        double serviceFee = 1000.0;
+        grandTotal += serviceFee;
+
         newOrder.setTotalPrice(grandTotal);
 
         // Simpan Order (dan OrderItem-nya via cascade)
@@ -183,13 +185,26 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderResponse mapOrderToResponse(Order order) {
         // Map OrderItems
-        List<OrderItemResponse> itemResponses = order.getItems().stream().map(item -> OrderItemResponse.builder()
-                .productId(item.getProductId())
-                .productName(item.getProductName())
-                .priceAtPurchase(item.getPriceAtPurchase())
-                .quantity(item.getQuantity())
-                .subTotal(item.getPriceAtPurchase() * item.getQuantity())
-                .build()).collect(Collectors.toList());
+        List<OrderItemResponse> itemResponses = order.getItems().stream().map(item -> {
+
+            String imageUrl = null;
+            try {
+                Product product = productRepository.findById(item.getProductId()).orElse(null);
+                if (product != null) {
+                    imageUrl = product.getImageUrl();
+                }
+            } catch (Exception e) {
+            }
+
+            return OrderItemResponse.builder()
+                    .productId(item.getProductId())
+                    .productName(item.getProductName())
+                    .productImageUrl(imageUrl)
+                    .priceAtPurchase(item.getPriceAtPurchase())
+                    .quantity(item.getQuantity())
+                    .subTotal(item.getPriceAtPurchase() * item.getQuantity())
+                    .build();
+        }).collect(Collectors.toList());
 
         // Map Alamat
         AddressResponse addressResponse = AddressResponse.builder()
