@@ -65,12 +65,22 @@ public class OrderServiceImpl implements OrderService {
         // Validasi Alamat Pengiriman
         Address shippingAddress = addressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new RuntimeException("Alamat tidak ditemukan"));
-                
+
         // Validasi Kepemilikan Alamat
         if (!shippingAddress.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("Akses ditolak. Alamat ini bukan milik Anda.");
         }
-        
+
+        List<Long> selectedIds = request.getSelectedCartItemIds();
+
+        List<CartItem> itemsToCheckout = cart.getItems().stream()
+                .filter(item -> selectedIds.contains(item.getId()))
+                .toList();
+
+        if (itemsToCheckout.isEmpty()) {
+            throw new RuntimeException("Tidak ada item yang dipilih untuk checkout");
+        }
+
         // Create objek order
         Order newOrder = Order.builder()
                 .user(currentUser)
@@ -82,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
         double grandTotal = 0.0;
 
         // Move Item from cart to Order
-        for (CartItem cartItem : cart.getItems()) {
+        for (CartItem cartItem : itemsToCheckout) {
             Product product = cartItem.getProduct();
 
             // Cek Stock
@@ -100,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
                     .build();
 
             newOrder.getItems().add(orderItem);
-            
+
             // Update Stok Produk
             product.setStock(product.getStock() - cartItem.getQuantity());
             productRepository.save(product);
@@ -138,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(savedOrder);
 
         // Kosongkan Keranjang
-        cart.getItems().clear();
+        cart.getItems().removeAll(itemsToCheckout);
         cartRepository.save(cart);
 
         // Return DTO + PaymentUrl
@@ -162,7 +172,7 @@ public class OrderServiceImpl implements OrderService {
         // Ambil order
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
-        
+
         // Validasi Kepemilikan
         if (!order.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("Akses ditolak. Pesanan ini bukan milik Anda.");
@@ -173,15 +183,13 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderResponse mapOrderToResponse(Order order) {
         // Map OrderItems
-        List<OrderItemResponse> itemResponses = order.getItems().stream().map(item -> 
-            OrderItemResponse.builder()
-                    .productId(item.getProductId())
-                    .productName(item.getProductName())
-                    .priceAtPurchase(item.getPriceAtPurchase())
-                    .quantity(item.getQuantity())
-                    .subTotal(item.getPriceAtPurchase() * item.getQuantity())
-                    .build()
-        ).collect(Collectors.toList());
+        List<OrderItemResponse> itemResponses = order.getItems().stream().map(item -> OrderItemResponse.builder()
+                .productId(item.getProductId())
+                .productName(item.getProductName())
+                .priceAtPurchase(item.getPriceAtPurchase())
+                .quantity(item.getQuantity())
+                .subTotal(item.getPriceAtPurchase() * item.getQuantity())
+                .build()).collect(Collectors.toList());
 
         // Map Alamat
         AddressResponse addressResponse = AddressResponse.builder()
@@ -194,7 +202,7 @@ public class OrderServiceImpl implements OrderService {
                 .postalCode(order.getShippingAddress().getPostalCode())
                 .isMainAddress(order.getShippingAddress().isMainAddress())
                 .build();
-                
+
         // Map Order utama
         return OrderResponse.builder()
                 .orderId(order.getId())
@@ -205,4 +213,4 @@ public class OrderServiceImpl implements OrderService {
                 .items(itemResponses)
                 .build();
     }
-}  
+}
