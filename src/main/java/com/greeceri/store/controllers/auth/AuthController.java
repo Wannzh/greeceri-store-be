@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.request.ForgotPasswordRequest;
 import com.greeceri.store.models.request.LoginRequest;
+import com.greeceri.store.models.request.RefreshTokenRequest;
 import com.greeceri.store.models.request.RegisterRequest;
 import com.greeceri.store.models.request.ResendVerificationRequest;
 import com.greeceri.store.models.request.ResetPasswordRequest;
@@ -58,6 +59,12 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 new GenericResponse<>(true, "Login Successful", response));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<GenericResponse<AuthenticationResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthenticationResponse response = authenticationService.refreshToken(request);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Token refreshed successfully", response));
     }
 
     @PostMapping("/resend-verification")
