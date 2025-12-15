@@ -9,6 +9,7 @@ import com.greeceri.store.models.response.AdminOrderSummaryResponse;
 
 public interface AdminOrderService {
     List<AdminOrderSummaryResponse> getAllOrders();
+    List<AdminOrderSummaryResponse> getOrdersByStatus(String status);
     AdminOrderDetailResponse getOrderById(String orderId);
     Map<String, String> updateOrderStatus(String orderId, UpdateOrderStatusRequest request);
 }

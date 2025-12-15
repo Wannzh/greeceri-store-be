@@ -7,9 +7,11 @@ import org.springframework.stereotype.Repository;
 
 import com.greeceri.store.models.entity.Order;
 import com.greeceri.store.models.entity.User;
+import com.greeceri.store.models.enums.OrderStatus;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, String> {
     List<Order> findByUserOrderByOrderDateDesc(User user);
     List<Order> findAllByOrderByOrderDateDesc();
+    List<Order> findByStatusOrderByOrderDateDesc(OrderStatus status);
 }

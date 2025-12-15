@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.request.UpdateOrderStatusRequest;
@@ -29,9 +30,18 @@ public class AdminOrderController {
 
     // GET /api/admin/orders
     @GetMapping
-    public ResponseEntity<GenericResponse<List<AdminOrderSummaryResponse>>> getAllOrders() {
-        List<AdminOrderSummaryResponse> orders = adminOrderService.getAllOrders();
-        return ResponseEntity.ok(new GenericResponse<>(true, "All orders retrieved successfully", orders));
+    public ResponseEntity<GenericResponse<List<AdminOrderSummaryResponse>>> getOrders(
+            @RequestParam(required = false) String status) {
+        List<AdminOrderSummaryResponse> orders;
+
+        if (status == null || status.equalsIgnoreCase("ALL")) {
+            orders = adminOrderService.getAllOrders();
+        } else {
+            orders = adminOrderService.getOrdersByStatus(status);
+        }
+
+        return ResponseEntity.ok(
+                new GenericResponse<>(true, "Orders retrieved successfully", orders));
     }
 
     // GET /api/admin/orders/{orderId}
@@ -46,7 +56,7 @@ public class AdminOrderController {
     public ResponseEntity<Map<String, String>> updateOrderStatus(
             @PathVariable String orderId,
             @Valid @RequestBody UpdateOrderStatusRequest request) {
-        
+
         Map<String, String> result = adminOrderService.updateOrderStatus(orderId, request);
         return ResponseEntity.ok(result);
     }

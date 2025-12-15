@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.greeceri.store.models.entity.Order;
+import com.greeceri.store.models.enums.OrderStatus;
 import com.greeceri.store.models.request.UpdateOrderStatusRequest;
 import com.greeceri.store.models.response.AdminOrderDetailResponse;
 import com.greeceri.store.models.response.AdminOrderSummaryResponse;
@@ -34,6 +35,19 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                         .createdAt(order.getOrderDate())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AdminOrderSummaryResponse> getOrdersByStatus(String statusStr) {
+        try {
+            OrderStatus status = OrderStatus.valueOf(statusStr.toUpperCase());
+
+            return orderRepository.findByStatusOrderByOrderDateDesc(status).stream()
+                    .map(this::mapToSummaryResponse)
+                    .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid order status: " + statusStr);
+        }
     }
 
     @Override
@@ -85,5 +99,15 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         Map<String, String> response = new HashMap<>();
         response.put("status", order.getStatus().name());
         return response;
+    }
+
+    private AdminOrderSummaryResponse mapToSummaryResponse(Order order) {
+        return AdminOrderSummaryResponse.builder()
+                .id(order.getId())
+                .userName(order.getUser().getName())
+                .totalPrice(order.getTotalPrice())
+                .status(order.getStatus())
+                .createdAt(order.getOrderDate())
+                .build();
     }
 }
