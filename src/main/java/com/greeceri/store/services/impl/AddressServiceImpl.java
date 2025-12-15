@@ -30,6 +30,13 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    public AddressResponse getAddressById(User currentUser, String addressId) {
+        Address address = findAndValidateOwnership(currentUser, addressId);
+
+        return mapAddressToResponse(address);
+    }
+
+    @Override
     @Transactional
     public AddressResponse addAddress(User currentUser, AddressRequest request) {
         Address newAddress = Address.builder()

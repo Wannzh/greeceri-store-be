@@ -60,6 +60,18 @@ public class ProfileController {
         return ResponseEntity.ok(new GenericResponse<>(true, "Addresses retrieved successfully", addresses));
     }
 
+    @GetMapping("/address/{addressId}")
+    public ResponseEntity<GenericResponse<AddressResponse>> getAddressById(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable String addressId) {
+        
+        User currentUser = (User) currentUserDetails;
+        
+        AddressResponse response = addressService.getAddressById(currentUser, addressId);
+
+        return ResponseEntity.ok(new GenericResponse<>(true, "Success retrieving address detail", response));
+    }
+
     @PostMapping("/address")
     public ResponseEntity<GenericResponse<AddressResponse>> addNewAddress(
             @AuthenticationPrincipal UserDetails currentUserDetails,

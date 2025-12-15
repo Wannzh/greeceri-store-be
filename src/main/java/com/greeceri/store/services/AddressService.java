@@ -8,6 +8,7 @@ import com.greeceri.store.models.response.AddressResponse;
 
 public interface AddressService {
     List<AddressResponse> getAllAddressesForUser(User currentUser);
+    AddressResponse getAddressById(User currentUser, String addressId);
     AddressResponse addAddress(User currentUser, AddressRequest request);
     AddressResponse updateAddress(User currentUser, String id,AddressRequest request);
     void deleteAddress(User currentUser, String id);
