@@ -11,4 +11,5 @@ import com.greeceri.store.models.entity.User;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, String> {
     List<Order> findByUserOrderByOrderDateDesc(User user);
+    List<Order> findAllByOrderByOrderDateDesc();
 }
