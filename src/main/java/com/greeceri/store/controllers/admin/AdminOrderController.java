@@ -3,6 +3,7 @@ package com.greeceri.store.controllers.admin;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,15 +31,13 @@ public class AdminOrderController {
 
     // GET /api/admin/orders
     @GetMapping
-    public ResponseEntity<GenericResponse<List<AdminOrderSummaryResponse>>> getOrders(
-            @RequestParam(required = false) String status) {
-        List<AdminOrderSummaryResponse> orders;
+    public ResponseEntity<GenericResponse<Page<AdminOrderSummaryResponse>>> getOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword) {
 
-        if (status == null || status.equalsIgnoreCase("ALL")) {
-            orders = adminOrderService.getAllOrders();
-        } else {
-            orders = adminOrderService.getOrdersByStatus(status);
-        }
+        Page<AdminOrderSummaryResponse> orders = adminOrderService.getOrders(page, size, status, keyword);
 
         return ResponseEntity.ok(
                 new GenericResponse<>(true, "Orders retrieved successfully", orders));

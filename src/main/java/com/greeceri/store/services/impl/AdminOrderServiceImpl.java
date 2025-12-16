@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +38,28 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                         .createdAt(order.getOrderDate())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<AdminOrderSummaryResponse> getOrders(int page, int size, String statusStr, String keyword) {
+        OrderStatus status = null;
+        if (statusStr != null && !statusStr.isEmpty() && !statusStr.equalsIgnoreCase("ALL")) {
+            try {
+                status = OrderStatus.valueOf(statusStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Jika status invalid, anggap null (cari semua) atau bisa throw error
+            }
+        }
+
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
+
+        Page<Order> orderPage = orderRepository.findAllByStatusAndKeyword(status, keyword, pageable);
+
+        return orderPage.map(this::mapToSummaryResponse);
     }
 
     @Override
