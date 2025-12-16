@@ -41,23 +41,14 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     }
 
     @Override
-    public Page<AdminOrderSummaryResponse> getOrders(int page, int size, String statusStr, String keyword) {
-        OrderStatus status = null;
-        if (statusStr != null && !statusStr.isEmpty() && !statusStr.equalsIgnoreCase("ALL")) {
-            try {
-                status = OrderStatus.valueOf(statusStr.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                // Jika status invalid, anggap null (cari semua) atau bisa throw error
-            }
-        }
-
+    public Page<AdminOrderSummaryResponse> getOrders(int page, int size, OrderStatus statusStr, String keyword) {
         if (keyword != null && keyword.trim().isEmpty()) {
             keyword = null;
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
 
-        Page<Order> orderPage = orderRepository.findAllByStatusAndKeyword(status, keyword, pageable);
+        Page<Order> orderPage = orderRepository.findAllByStatusAndKeyword(statusStr, keyword, pageable);
 
         return orderPage.map(this::mapToSummaryResponse);
     }

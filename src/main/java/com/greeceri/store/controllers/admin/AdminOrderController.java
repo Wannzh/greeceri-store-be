@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.greeceri.store.models.enums.OrderStatus;
 import com.greeceri.store.models.request.UpdateOrderStatusRequest;
 import com.greeceri.store.models.response.AdminOrderDetailResponse;
 import com.greeceri.store.models.response.AdminOrderSummaryResponse;
@@ -34,7 +35,7 @@ public class AdminOrderController {
     public ResponseEntity<GenericResponse<Page<AdminOrderSummaryResponse>>> getOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) String keyword) {
 
         Page<AdminOrderSummaryResponse> orders = adminOrderService.getOrders(page, size, status, keyword);
