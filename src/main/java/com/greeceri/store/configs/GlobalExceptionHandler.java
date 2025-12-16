@@ -1,5 +1,6 @@
 package com.greeceri.store.configs;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -16,7 +17,7 @@ public class GlobalExceptionHandler {
     // Handle Error Validasi Input (@Valid, @NotBlank, dll)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<GeneralResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
-        
+
         String errorMessage = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -42,5 +43,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new GeneralResponse(false, "An internal error occurred: " + ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(
+            IllegalStateException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", ex.getMessage()));
     }
 }

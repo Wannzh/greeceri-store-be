@@ -93,12 +93,20 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        order.setStatus(request.getStatus());
+        OrderStatus currentStatus = order.getStatus();
+        OrderStatus newStatus = request.getStatus();
+
+        if (!OrderStatus.isValidTransition(currentStatus, newStatus)) {
+            throw new IllegalStateException(
+                    "Invalid status transition: " + currentStatus + " → " + newStatus);
+        }
+
+        order.setStatus(newStatus);
         orderRepository.save(order);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("status", order.getStatus().name());
-        return response;
+        return Map.of(
+                "message", "Order status updated successfully",
+                "status", newStatus.name());
     }
 
     private AdminOrderSummaryResponse mapToSummaryResponse(Order order) {
