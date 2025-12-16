@@ -35,10 +35,20 @@ public class AdminOrderController {
     public ResponseEntity<GenericResponse<Page<AdminOrderSummaryResponse>>> getOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword) {
 
-        Page<AdminOrderSummaryResponse> orders = adminOrderService.getOrders(page, size, status, keyword);
+        OrderStatus parsedStatus = null;
+
+        if (status != null && !status.isBlank()) {
+            try {
+                parsedStatus = OrderStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid order status: " + status);
+            }
+        }
+
+        Page<AdminOrderSummaryResponse> orders = adminOrderService.getOrders(page, size, parsedStatus, keyword);
 
         return ResponseEntity.ok(
                 new GenericResponse<>(true, "Orders retrieved successfully", orders));
