@@ -23,7 +23,9 @@ public interface OrderRepository extends JpaRepository<Order, String> {
 
     @Query("SELECT o FROM Order o WHERE " +
             "(:status IS NULL OR o.status = :status) AND " +
-            "(:keyword IS NULL OR LOWER(CAST(o.user.name AS string)) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "(:keyword IS NULL OR " +
+            "LOWER(o.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(CAST(o.id AS string)) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Order> findAllByStatusAndKeyword(
             @Param("status") OrderStatus status,
             @Param("keyword") String keyword,
