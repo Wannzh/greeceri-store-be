@@ -21,13 +21,17 @@ public interface OrderRepository extends JpaRepository<Order, String> {
 
     List<Order> findByStatusOrderByOrderDateDesc(OrderStatus status);
 
-    @Query("SELECT o FROM Order o WHERE " +
-            "(:status IS NULL OR o.status = :status) AND " +
-            "(:keyword IS NULL OR " +
-            "LOWER(o.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(CAST(o.id AS string)) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    @Query(value = "SELECT o.* FROM orders o " +
+            "JOIN users u ON u.id = o.user_id " +
+            "WHERE (CAST(:status AS varchar) IS NULL OR o.status = CAST(:status AS varchar)) " +
+            "AND (CAST(:keyword AS varchar) IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS varchar), '%'))) "
+            +
+            "ORDER BY o.order_date DESC", countQuery = "SELECT COUNT(*) FROM orders o " +
+                    "JOIN users u ON u.id = o.user_id " +
+                    "WHERE (CAST(:status AS varchar) IS NULL OR o.status = CAST(:status AS varchar)) " +
+                    "AND (CAST(:keyword AS varchar) IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS varchar), '%')))", nativeQuery = true)
     Page<Order> findAllByStatusAndKeyword(
-            @Param("status") OrderStatus status,
+            @Param("status") String status,
             @Param("keyword") String keyword,
             Pageable pageable);
 
