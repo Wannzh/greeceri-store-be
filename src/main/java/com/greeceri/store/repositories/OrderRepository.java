@@ -16,20 +16,24 @@ import com.greeceri.store.models.enums.OrderStatus;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, String> {
     List<Order> findByUserOrderByOrderDateDesc(User user);
+
     List<Order> findAllByOrderByOrderDateDesc();
+
     List<Order> findByStatusOrderByOrderDateDesc(OrderStatus status);
 
     @Query("SELECT o FROM Order o WHERE " +
-           "(:status IS NULL OR o.status = :status) AND " +
-           "(:keyword IS NULL OR LOWER(o.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(o.id) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "(:status IS NULL OR o.status = :status) AND " +
+            "(:keyword IS NULL OR LOWER(o.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR CAST(o.id AS string) LIKE CONCAT('%', :keyword, '%'))")
     Page<Order> findAllByStatusAndKeyword(
-            @Param("status") OrderStatus status, 
-            @Param("keyword") String keyword, 
+            @Param("status") OrderStatus status,
+            @Param("keyword") String keyword,
             Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.status IN ('PAID', 'SHIPPED', 'DELIVERED')")
     Double sumTotalRevenue();
+
     @Query("SELECT o.status, COUNT(o) FROM Order o GROUP BY o.status")
     List<Object[]> countOrdersByStatus();
+
     List<Order> findTop5ByOrderByOrderDateDesc();
 }
