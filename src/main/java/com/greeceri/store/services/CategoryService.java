@@ -2,10 +2,10 @@ package com.greeceri.store.services;
 
 import java.util.List;
 
-import com.greeceri.store.models.entity.Category;
+import com.greeceri.store.models.response.CategoryResponse;
 
 public interface CategoryService {
-    List<Category> getAllCategories();
+    List<CategoryResponse> getAllCategories();
 
-    Category getCategoryById(Long categoryId);
+    CategoryResponse getCategoryById(Long categoryId);
 }
