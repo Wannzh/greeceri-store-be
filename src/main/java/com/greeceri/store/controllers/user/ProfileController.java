@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.request.AddressRequest;
+import com.greeceri.store.models.request.ChangePasswordRequest;
 import com.greeceri.store.models.request.UpdateProfileRequest;
 import com.greeceri.store.models.response.AddressResponse;
 import com.greeceri.store.models.response.GenericResponse;
@@ -52,6 +53,20 @@ public class ProfileController {
         return ResponseEntity.ok(new GenericResponse<>(true, "Profile updated successfully", updatedProfile));
     }
 
+    @PutMapping("/password")
+    public ResponseEntity<GenericResponse<Void>> changePassword(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        User currentUser = (User) currentUserDetails;
+        try {
+            profileService.changePassword(currentUser, request);
+            return ResponseEntity.ok(new GenericResponse<>(true, "Password changed successfully", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new GenericResponse<>(false, e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/address")
     public ResponseEntity<GenericResponse<List<AddressResponse>>> getAllMyAddresses(
             @AuthenticationPrincipal UserDetails currentUserDetails) {
@@ -64,9 +79,9 @@ public class ProfileController {
     public ResponseEntity<GenericResponse<AddressResponse>> getAddressById(
             @AuthenticationPrincipal UserDetails currentUserDetails,
             @PathVariable String addressId) {
-        
+
         User currentUser = (User) currentUserDetails;
-        
+
         AddressResponse response = addressService.getAddressById(currentUser, addressId);
 
         return ResponseEntity.ok(new GenericResponse<>(true, "Success retrieving address detail", response));
@@ -109,5 +124,4 @@ public class ProfileController {
         List<AddressResponse> updatedAddresses = addressService.setMainAddress(currentUser, addressId);
         return ResponseEntity.ok(new GenericResponse<>(true, "Main address updated successfully", updatedAddresses));
     }
-
 }

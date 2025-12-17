@@ -1,9 +1,11 @@
 package com.greeceri.store.services.impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.greeceri.store.models.entity.User;
+import com.greeceri.store.models.request.ChangePasswordRequest;
 import com.greeceri.store.models.request.UpdateProfileRequest;
 import com.greeceri.store.models.response.UserProfileResponse;
 import com.greeceri.store.repositories.UserRepository;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserProfileResponse getProfile(User currentUser) {
@@ -34,6 +37,18 @@ public class ProfileServiceImpl implements ProfileService {
         return mapUserToProfileResponse(updateUser);
     }
 
+    @Override
+    @Transactional
+    public void changePassword(User currentUser, ChangePasswordRequest request) {
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // Encode and set new password
+        currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(currentUser);
+    }
 
     private UserProfileResponse mapUserToProfileResponse(User user) {
         return UserProfileResponse.builder()

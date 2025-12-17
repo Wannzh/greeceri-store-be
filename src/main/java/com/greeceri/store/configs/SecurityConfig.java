@@ -49,7 +49,8 @@ public class SecurityConfig {
 
                                                 // Admin + User
                                                 .requestMatchers(
-                                                                "/api/user/profile")
+                                                                "/api/user/profile",
+                                                                "/api/user/password")
                                                 .hasAnyAuthority("ADMIN", "USER")
 
                                                 // User
