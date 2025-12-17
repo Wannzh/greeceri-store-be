@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
 public class AdminDashboardResponse {
     private long totalOrders;
     private Double totalRevenue;
+    private Long totalProducts;
+    private Long totalCategories;
     private Map<OrderStatus, Long> statusCount;
     private List<AdminOrderSummaryResponse> recentOrders;
 }
-
