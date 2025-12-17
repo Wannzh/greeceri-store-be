@@ -6,4 +6,6 @@ import com.greeceri.store.models.entity.Category;
 
 public interface CategoryService {
     List<Category> getAllCategories();
-}  
+
+    Category getCategoryById(Long categoryId);
+}
