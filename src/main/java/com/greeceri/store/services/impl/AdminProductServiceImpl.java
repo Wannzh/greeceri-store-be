@@ -36,7 +36,7 @@ public class AdminProductServiceImpl implements AdminProductService {
 
         @Override
         @Transactional
-        public Product createProduct(AdminProductRequest request) {
+        public AdminProductSummaryResponse createProduct(AdminProductRequest request) {
                 Category category = categoryRepository.findById(request.getCategoryId())
                                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -49,12 +49,13 @@ public class AdminProductServiceImpl implements AdminProductService {
                                 .category(category)
                                 .build();
 
-                return productRepository.save(newProduct);
+                Product savedProduct = productRepository.save(newProduct);
+                return mapToSummaryResponse(savedProduct);
         }
 
         @Override
         @Transactional
-        public Product updateProduct(Long productId, AdminProductRequest request) {
+        public AdminProductSummaryResponse updateProduct(Long productId, AdminProductRequest request) {
                 Product productToUpdate = productRepository.findById(productId)
                                 .orElseThrow(() -> new RuntimeException("Product not found!"));
 
@@ -69,7 +70,8 @@ public class AdminProductServiceImpl implements AdminProductService {
                 productToUpdate.setImageUrl(request.getImageUrl());
                 productToUpdate.setCategory(category);
 
-                return productRepository.save(productToUpdate);
+                Product savedProduct = productRepository.save(productToUpdate);
+                return mapToSummaryResponse(savedProduct);
         }
 
         @Override

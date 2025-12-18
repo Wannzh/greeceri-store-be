@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.greeceri.store.models.entity.Product;
 import com.greeceri.store.models.request.AdminProductRequest;
 import com.greeceri.store.models.response.AdminProductSummaryResponse;
 import com.greeceri.store.models.response.GenericResponse;
@@ -43,18 +42,18 @@ public class AdminProductController {
     }
 
     @PostMapping
-    public ResponseEntity<GenericResponse<Product>> createProduct(
+    public ResponseEntity<GenericResponse<AdminProductSummaryResponse>> createProduct(
             @Valid @RequestBody AdminProductRequest request) {
-        Product newProduct = adminProductService.createProduct(request);
+        AdminProductSummaryResponse newProduct = adminProductService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new GenericResponse<>(true, "Product created successfully", newProduct));
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<GenericResponse<Product>> updateProduct(
+    public ResponseEntity<GenericResponse<AdminProductSummaryResponse>> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody AdminProductRequest request) {
-        Product updatedProduct = adminProductService.updateProduct(productId, request);
+        AdminProductSummaryResponse updatedProduct = adminProductService.updateProduct(productId, request);
         return ResponseEntity.ok(new GenericResponse<>(true, "Product updated successfully", updatedProduct));
     }
 
