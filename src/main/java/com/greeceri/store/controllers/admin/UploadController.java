@@ -3,6 +3,7 @@ package com.greeceri.store.controllers.admin;
 import java.io.IOException;
 import java.util.Map;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +23,7 @@ public class UploadController {
 
     private final CloudinaryService cloudinaryService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GenericResponse<Map<String, String>>> uploadImage(
             @RequestParam("file") MultipartFile file) throws IOException {
 
