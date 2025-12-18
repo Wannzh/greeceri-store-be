@@ -8,6 +8,8 @@ import com.greeceri.store.models.response.AdminProductSummaryResponse;
 public interface AdminProductService {
     Page<AdminProductSummaryResponse> getProducts(int page, int size, String keyword);
 
+    AdminProductSummaryResponse getProductById(Long productId);
+
     AdminProductSummaryResponse createProduct(AdminProductRequest request);
 
     AdminProductSummaryResponse updateProduct(Long productId, AdminProductRequest request);

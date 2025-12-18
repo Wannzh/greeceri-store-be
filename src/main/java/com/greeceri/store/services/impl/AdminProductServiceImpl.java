@@ -35,6 +35,13 @@ public class AdminProductServiceImpl implements AdminProductService {
         }
 
         @Override
+        public AdminProductSummaryResponse getProductById(Long productId) {
+                Product product = productRepository.findById(productId)
+                                .orElseThrow(() -> new RuntimeException("Product not found!"));
+                return mapToSummaryResponse(product);
+        }
+
+        @Override
         @Transactional
         public AdminProductSummaryResponse createProduct(AdminProductRequest request) {
                 Category category = categoryRepository.findById(request.getCategoryId())

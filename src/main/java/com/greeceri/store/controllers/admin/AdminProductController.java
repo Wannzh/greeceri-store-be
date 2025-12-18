@@ -41,6 +41,14 @@ public class AdminProductController {
                 new GenericResponse<>(true, "Products retrieved successfully", products));
     }
 
+    // GET /api/admin/products/{productId} - Get product by ID
+    @GetMapping("/{productId}")
+    public ResponseEntity<GenericResponse<AdminProductSummaryResponse>> getProductById(
+            @PathVariable Long productId) {
+        AdminProductSummaryResponse product = adminProductService.getProductById(productId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Product retrieved successfully", product));
+    }
+
     @PostMapping
     public ResponseEntity<GenericResponse<AdminProductSummaryResponse>> createProduct(
             @Valid @RequestBody AdminProductRequest request) {
