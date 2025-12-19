@@ -133,6 +133,12 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 OrderStatus currentStatus = order.getStatus();
                 OrderStatus newStatus = request.getStatus();
 
+                // Admin cannot set status to DELIVERED - only user can confirm delivery
+                if (newStatus == OrderStatus.DELIVERED) {
+                        throw new IllegalStateException(
+                                        "Admin tidak dapat mengubah status menjadi DELIVERED. Status ini hanya dapat diubah oleh user sebagai konfirmasi penerimaan.");
+                }
+
                 if (!OrderStatus.isValidTransition(currentStatus, newStatus)) {
                         throw new IllegalStateException(
                                         "Invalid status transition: " + currentStatus + " → " + newStatus);

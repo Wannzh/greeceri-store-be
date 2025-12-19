@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,10 +50,22 @@ public class OrderController {
     @GetMapping("/my/{orderId}")
     public ResponseEntity<GenericResponse<OrderResponse>> getMyOrderDetails(
             @AuthenticationPrincipal UserDetails currentUserDetails,
-            @PathVariable String orderId // ID adalah String (UUID)
-    ) {
+            @PathVariable String orderId) {
         User currentUser = (User) currentUserDetails;
         OrderResponse details = orderService.getMyOrderDetails(currentUser, orderId);
         return ResponseEntity.ok(new GenericResponse<>(true, "Order details retrieved successfully", details));
+    }
+
+    /**
+     * User confirms that order has been delivered/received
+     * PUT /api/orders/my/{orderId}/confirm-delivery
+     */
+    @PutMapping("/my/{orderId}/confirm-delivery")
+    public ResponseEntity<GenericResponse<OrderResponse>> confirmDelivery(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable String orderId) {
+        User currentUser = (User) currentUserDetails;
+        OrderResponse updated = orderService.confirmDelivery(currentUser, orderId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Pesanan dikonfirmasi sudah diterima", updated));
     }
 }

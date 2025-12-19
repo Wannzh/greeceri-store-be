@@ -211,6 +211,29 @@ public class OrderServiceImpl implements OrderService {
         return mapOrderToResponse(order, null);
     }
 
+    @Override
+    @Transactional
+    public OrderResponse confirmDelivery(User currentUser, String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
+
+        // Validate ownership
+        if (!order.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Akses ditolak. Pesanan ini bukan milik Anda.");
+        }
+
+        // Only SHIPPED orders can be confirmed as delivered
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new RuntimeException("Hanya pesanan dengan status SHIPPED yang dapat dikonfirmasi sebagai diterima.");
+        }
+
+        // Update status to DELIVERED
+        order.setStatus(OrderStatus.DELIVERED);
+        Order savedOrder = orderRepository.save(order);
+
+        return mapOrderToResponse(savedOrder, null);
+    }
+
     private OrderResponse mapOrderToResponse(Order order, Double providedSubtotal) {
         // Map OrderItems
         List<OrderItemResponse> itemResponses = order.getItems().stream().map(item -> {
