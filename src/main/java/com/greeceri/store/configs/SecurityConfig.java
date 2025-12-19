@@ -41,10 +41,10 @@ public class SecurityConfig {
                                                                 "/api/products/**",
                                                                 "/api/categories",
                                                                 "/api/categories/**",
+                                                                // Shipping - public endpoint for cost estimation
+                                                                "/api/shipping/estimate-cost",
                                                                 // Xendit
-                                                                "/api/payments/callback") // Jangan lupa tambahin
-                                                                                          // endpoint untuk
-                                                // callback xendit
+                                                                "/api/payments/callback")
                                                 .permitAll()
 
                                                 // Admin + User
@@ -53,13 +53,15 @@ public class SecurityConfig {
                                                                 "/api/user/password")
                                                 .hasAnyAuthority("ADMIN", "USER")
 
-                                                // User
+                                                // User - termasuk shipping endpoints
                                                 .requestMatchers(
                                                                 "/api/user/address",
                                                                 "/api/user/address/**",
                                                                 "/api/cart",
                                                                 "/api/cart/**",
-                                                                "/api/orders/**")
+                                                                "/api/orders/**",
+                                                                "/api/shipping/slots",
+                                                                "/api/shipping/validate-address")
                                                 .hasAnyAuthority("USER")
 
                                                 // Admin
