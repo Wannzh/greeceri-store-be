@@ -20,15 +20,15 @@ import com.greeceri.store.models.entity.User;
 import com.greeceri.store.models.enums.OrderStatus;
 import com.greeceri.store.models.request.CheckoutRequest;
 import com.greeceri.store.models.response.AddressResponse;
+import com.greeceri.store.models.response.DeliveryValidationResponse;
 import com.greeceri.store.models.response.OrderItemResponse;
 import com.greeceri.store.models.response.OrderResponse;
 import com.greeceri.store.repositories.AddressRepository;
-import com.greeceri.store.repositories.CartItemRepository;
 import com.greeceri.store.repositories.CartRepository;
-import com.greeceri.store.repositories.OrderItemRepository;
 import com.greeceri.store.repositories.OrderRepository;
 import com.greeceri.store.repositories.ProductRepository;
 import com.greeceri.store.services.OrderService;
+import com.greeceri.store.services.ShippingService;
 import com.xendit.exception.XenditException;
 import com.xendit.model.Invoice;
 
@@ -40,7 +40,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
-    private final ProductRepository productRepository; // Untuk update stok
+    private final ProductRepository productRepository;
+    private final ShippingService shippingService;
 
     // Payment Gateway
     @Value("${app.payment.redirect.success}")
@@ -48,6 +49,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Value("${app.payment.redirect.failure}")
     private String failureRedirectUrl;
+
+    private static final double SERVICE_FEE = 1000.0;
+    private static final double MINIMUM_ORDER_AMOUNT = 10000.0;
 
     @Override
     @Transactional
@@ -69,6 +73,24 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Akses ditolak. Alamat ini bukan milik Anda.");
         }
 
+        // === SHIPPING VALIDATIONS ===
+
+        // Validasi tanggal pengiriman
+        if (!shippingService.isValidDeliveryDate(request.getDeliveryDate())) {
+            throw new RuntimeException("Tanggal pengiriman tidak valid. Pilih tanggal hari ini atau setelahnya.");
+        }
+
+        // Validasi alamat dalam jangkauan pengiriman
+        DeliveryValidationResponse deliveryValidation = shippingService.validateDeliveryAddress(shippingAddress);
+        if (!deliveryValidation.isDeliverable()) {
+            throw new RuntimeException(deliveryValidation.getMessage());
+        }
+
+        Double shippingCost = deliveryValidation.getShippingCost();
+        Double distanceKm = deliveryValidation.getDistanceKm();
+
+        // === END SHIPPING VALIDATIONS ===
+
         List<Long> selectedIds = request.getSelectedCartItemIds();
 
         List<CartItem> itemsToCheckout = cart.getItems().stream()
@@ -79,16 +101,19 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Tidak ada item yang dipilih untuk checkout");
         }
 
-        // Create objek order
+        // Create objek order dengan delivery info
         Order newOrder = Order.builder()
                 .user(currentUser)
                 .shippingAddress(shippingAddress)
-                .status(OrderStatus.PENDING_PAYMENT) // Status Awal
+                .status(OrderStatus.PENDING_PAYMENT)
+                .deliveryDate(request.getDeliveryDate())
+                .deliverySlot(request.getDeliverySlot())
+                .shippingCost(shippingCost)
+                .distanceKm(distanceKm)
                 .items(new ArrayList<>())
                 .build();
 
-        double grandTotal = 0.0;
-        double itemsSubtotal = 0.0; // Subtotal sebelum biaya layanan
+        double itemsSubtotal = 0.0;
 
         // Move Item from cart to Order
         for (CartItem cartItem : itemsToCheckout) {
@@ -104,7 +129,7 @@ public class OrderServiceImpl implements OrderService {
                     .order(newOrder)
                     .productId(product.getId())
                     .productName(product.getName())
-                    .priceAtPurchase(product.getPrice()) // <-- Ini snapshot harga
+                    .priceAtPurchase(product.getPrice())
                     .quantity(cartItem.getQuantity())
                     .build();
 
@@ -117,21 +142,18 @@ public class OrderServiceImpl implements OrderService {
             itemsSubtotal += (product.getPrice() * cartItem.getQuantity());
         }
 
-        // Minimum order validation: Rp 10.000
-        double minimumOrderAmount = 10000.0;
-        if (itemsSubtotal < minimumOrderAmount) {
+        // Minimum order validation
+        if (itemsSubtotal < MINIMUM_ORDER_AMOUNT) {
             throw new RuntimeException(String.format(
                     "Minimum pembelian adalah Rp %.0f. Total belanja Anda saat ini Rp %.0f",
-                    minimumOrderAmount, itemsSubtotal));
+                    MINIMUM_ORDER_AMOUNT, itemsSubtotal));
         }
 
-        // biaya layanan
-        double serviceFee = 1000.0;
-        grandTotal = itemsSubtotal + serviceFee;
-
+        // Calculate grand total: subtotal + shipping + service fee
+        double grandTotal = itemsSubtotal + shippingCost + SERVICE_FEE;
         newOrder.setTotalPrice(grandTotal);
 
-        // Simpan Order (dan OrderItem-nya via cascade)
+        // Simpan Order
         Order savedOrder = orderRepository.save(newOrder);
 
         // Get Invoice Payment Gateway
@@ -151,7 +173,6 @@ public class OrderServiceImpl implements OrderService {
             invoiceUrl = invoice.getInvoiceUrl();
             xenditInvoiceId = invoice.getId();
         } catch (XenditException e) {
-            // Jika gagal, rollback transaksi
             throw new RuntimeException("Failed to create payment invoice:" + e.getMessage());
         }
 
@@ -164,10 +185,9 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.save(cart);
 
         // Return DTO + PaymentUrl
-        OrderResponse response = mapOrderToResponse(savedOrder);
+        OrderResponse response = mapOrderToResponse(savedOrder, itemsSubtotal);
         response.setPaymentUrl(invoiceUrl);
 
-        // Kembalikan DTO
         return response;
     }
 
@@ -175,28 +195,25 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponse> getMyOrders(User currentUser) {
         return orderRepository.findByUserOrderByOrderDateDesc(currentUser)
                 .stream()
-                .map(this::mapOrderToResponse) // Panggil mapper
+                .map(order -> mapOrderToResponse(order, null))
                 .collect(Collectors.toList());
     }
 
     @Override
     public OrderResponse getMyOrderDetails(User currentUser, String orderId) {
-        // Ambil order
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
 
-        // Validasi Kepemilikan
         if (!order.getUser().getId().equals(currentUser.getId())) {
             throw new RuntimeException("Akses ditolak. Pesanan ini bukan milik Anda.");
         }
 
-        return mapOrderToResponse(order);
+        return mapOrderToResponse(order, null);
     }
 
-    private OrderResponse mapOrderToResponse(Order order) {
+    private OrderResponse mapOrderToResponse(Order order, Double providedSubtotal) {
         // Map OrderItems
         List<OrderItemResponse> itemResponses = order.getItems().stream().map(item -> {
-
             String imageUrl = null;
             try {
                 Product product = productRepository.findById(item.getProductId()).orElse(null);
@@ -216,6 +233,14 @@ public class OrderServiceImpl implements OrderService {
                     .build();
         }).collect(Collectors.toList());
 
+        // Calculate subtotal from items if not provided
+        Double subtotal = providedSubtotal;
+        if (subtotal == null) {
+            subtotal = order.getItems().stream()
+                    .mapToDouble(item -> item.getPriceAtPurchase() * item.getQuantity())
+                    .sum();
+        }
+
         // Map Alamat
         AddressResponse addressResponse = AddressResponse.builder()
                 .id(order.getShippingAddress().getId())
@@ -226,14 +251,22 @@ public class OrderServiceImpl implements OrderService {
                 .city(order.getShippingAddress().getCity())
                 .postalCode(order.getShippingAddress().getPostalCode())
                 .isMainAddress(order.getShippingAddress().isMainAddress())
+                .latitude(order.getShippingAddress().getLatitude())
+                .longitude(order.getShippingAddress().getLongitude())
                 .build();
 
-        // Map Order utama
+        // Map Order with shipping fields
         return OrderResponse.builder()
                 .orderId(order.getId())
                 .status(order.getStatus())
                 .orderDate(order.getOrderDate())
+                .subtotal(subtotal)
+                .shippingCost(order.getShippingCost())
+                .serviceFee(SERVICE_FEE)
                 .totalPrice(order.getTotalPrice())
+                .distanceKm(order.getDistanceKm())
+                .deliveryDate(order.getDeliveryDate())
+                .deliverySlot(order.getDeliverySlot())
                 .shippingAddress(addressResponse)
                 .items(itemResponses)
                 .build();
