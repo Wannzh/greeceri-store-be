@@ -13,6 +13,7 @@ import com.greeceri.store.models.request.AddressRequest;
 import com.greeceri.store.models.response.AddressResponse;
 import com.greeceri.store.repositories.AddressRepository;
 import com.greeceri.store.services.AddressService;
+import com.greeceri.store.services.AddressValidationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService {
     private final AddressRepository addressRepository;
+    private final AddressValidationService addressValidationService;
 
     @Override
     public List<AddressResponse> getAllAddressesForUser(User currentUser) {
@@ -39,6 +41,9 @@ public class AddressServiceImpl implements AddressService {
     @Override
     @Transactional
     public AddressResponse addAddress(User currentUser, AddressRequest request) {
+        // Validate city and postal code
+        addressValidationService.validateAddress(request.getCity(), request.getPostalCode());
+
         Address newAddress = Address.builder()
                 .user(currentUser)
                 .label(request.getLabel())
@@ -47,6 +52,8 @@ public class AddressServiceImpl implements AddressService {
                 .fullAddress(request.getFullAddress())
                 .city(request.getCity())
                 .postalCode(request.getPostalCode())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .build();
 
         List<Address> userAddress = addressRepository.findByUser(currentUser);
@@ -57,13 +64,16 @@ public class AddressServiceImpl implements AddressService {
         }
 
         Address saveAddress = addressRepository.save(newAddress);
-        
+
         return mapAddressToResponse(saveAddress);
     }
 
     @Override
     @Transactional
     public AddressResponse updateAddress(User currentUser, String addressId, AddressRequest request) {
+        // Validate city and postal code
+        addressValidationService.validateAddress(request.getCity(), request.getPostalCode());
+
         Address address = findAndValidateOwnership(currentUser, addressId);
 
         address.setLabel(request.getLabel());
@@ -72,6 +82,8 @@ public class AddressServiceImpl implements AddressService {
         address.setFullAddress(request.getFullAddress());
         address.setCity(request.getCity());
         address.setPostalCode(request.getPostalCode());
+        address.setLatitude(request.getLatitude());
+        address.setLongitude(request.getLongitude());
 
         Address updatedAddress = addressRepository.save(address);
         return mapAddressToResponse(updatedAddress);
@@ -90,7 +102,7 @@ public class AddressServiceImpl implements AddressService {
                     .stream()
                     .filter(a -> !a.getId().equals(id)) // Cari yang BUKAN alamat ini
                     .findFirst(); // Ambil yang pertama
-            
+
             // Jika ada alamat lain, jadikan itu sebagai utama
             anyOtherAddress.ifPresent(newMain -> {
                 newMain.setMainAddress(true);
@@ -133,6 +145,8 @@ public class AddressServiceImpl implements AddressService {
                 .city(address.getCity())
                 .postalCode(address.getPostalCode())
                 .isMainAddress(address.isMainAddress())
+                .latitude(address.getLatitude())
+                .longitude(address.getLongitude())
                 .build();
     }
 

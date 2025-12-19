@@ -14,20 +14,24 @@ import lombok.NoArgsConstructor;
 public class AddressRequest {
     @NotBlank(message = "Address label is required")
     private String label;
-    
+
     @NotBlank(message = "Receiver name is required")
     private String receiverName;
-    
+
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[0-9\\-\\+\\(\\)\\s]+$", message = "Phone number format is invalid")
     private String phoneNumber;
-    
+
     @NotBlank(message = "Full address is required")
     private String fullAddress;
-    
+
     @NotBlank(message = "City is required")
     private String city;
-    
+
     @NotBlank(message = "Postal code is required")
     private String postalCode;
+
+    // Optional: for delivery distance calculation
+    private Double latitude;
+    private Double longitude;
 }

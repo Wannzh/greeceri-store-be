@@ -1,5 +1,6 @@
 package com.greeceri.store.models.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.greeceri.store.models.enums.DeliverySlot;
 import com.greeceri.store.models.enums.OrderStatus;
 
 import jakarta.persistence.CascadeType;
@@ -48,13 +50,11 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id", nullable = false)
     private Address shippingAddress;
-    
+
     // Daftar barang di dalam pesanan
-    @OneToMany(
-        mappedBy = "order",
-        cascade = CascadeType.ALL, // Jika Order dihapus, Item ikut terhapus
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, // Jika Order dihapus, Item ikut terhapus
+            orphanRemoval = true)
+    @lombok.Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
     @Column(nullable = false)
@@ -69,4 +69,19 @@ public class Order {
 
     // ID Transaksi dari Xendit (misal: Invoice ID)
     private String xenditInvoiceId;
+
+    // === DELIVERY FIELDS ===
+
+    // Tanggal pengiriman yang dipilih user
+    private LocalDate deliveryDate;
+
+    // Slot waktu pengiriman (MORNING / AFTERNOON)
+    @Enumerated(EnumType.STRING)
+    private DeliverySlot deliverySlot;
+
+    // Ongkos kirim (dihitung berdasarkan jarak)
+    private Double shippingCost;
+
+    // Jarak dari store ke alamat pengiriman (dalam km)
+    private Double distanceKm;
 }

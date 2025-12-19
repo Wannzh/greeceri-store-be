@@ -32,6 +32,10 @@ public class Address {
     private String postalCode;
     private boolean isMainAddress;
 
+    // Optional: for delivery distance calculation
+    private Double latitude;
+    private Double longitude;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

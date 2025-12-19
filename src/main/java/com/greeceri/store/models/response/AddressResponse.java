@@ -14,4 +14,6 @@ public class AddressResponse {
     private String city;
     private String postalCode;
     private boolean isMainAddress;
+    private Double latitude;
+    private Double longitude;
 }

@@ -88,6 +88,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         double grandTotal = 0.0;
+        double itemsSubtotal = 0.0; // Subtotal sebelum biaya layanan
 
         // Move Item from cart to Order
         for (CartItem cartItem : itemsToCheckout) {
@@ -113,11 +114,20 @@ public class OrderServiceImpl implements OrderService {
             product.setStock(product.getStock() - cartItem.getQuantity());
             productRepository.save(product);
 
-            grandTotal += (product.getPrice() * cartItem.getQuantity());
+            itemsSubtotal += (product.getPrice() * cartItem.getQuantity());
         }
+
+        // Minimum order validation: Rp 10.000
+        double minimumOrderAmount = 10000.0;
+        if (itemsSubtotal < minimumOrderAmount) {
+            throw new RuntimeException(String.format(
+                    "Minimum pembelian adalah Rp %.0f. Total belanja Anda saat ini Rp %.0f",
+                    minimumOrderAmount, itemsSubtotal));
+        }
+
         // biaya layanan
         double serviceFee = 1000.0;
-        grandTotal += serviceFee;
+        grandTotal = itemsSubtotal + serviceFee;
 
         newOrder.setTotalPrice(grandTotal);
 
