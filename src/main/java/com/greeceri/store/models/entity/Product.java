@@ -42,6 +42,7 @@ public class Product {
     private String imageUrl;
 
     // Unit satuan produk (contoh: kg, ikat, pak, 250gr, 500gr)
+    @Column(nullable = true, length = 50)
     private String unit;
 
     // Relasi to Category
