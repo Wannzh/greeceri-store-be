@@ -36,6 +36,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                                                 .totalPrice(order.getTotalPrice())
                                                 .status(order.getStatus())
                                                 .createdAt(order.getOrderDate())
+                                                .deliveryDate(order.getDeliveryDate())
+                                                .deliverySlot(order.getDeliverySlot())
+                                                .shippingCost(order.getShippingCost())
                                                 .build())
                                 .collect(Collectors.toList());
         }
@@ -73,6 +76,11 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 Order order = orderRepository.findById(orderId)
                                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+                // Calculate subtotal from items
+                Double subtotal = order.getItems().stream()
+                                .mapToDouble(item -> item.getPriceAtPurchase() * item.getQuantity())
+                                .sum();
+
                 // Mapping Nested Objects
                 AdminOrderDetailResponse.AdminUserInfo userInfo = AdminOrderDetailResponse.AdminUserInfo.builder()
                                 .name(order.getUser().getName())
@@ -84,6 +92,10 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                                 .receiverName(order.getShippingAddress().getReceiverName())
                                 .phoneNumber(order.getShippingAddress().getPhoneNumber())
                                 .fullAddress(order.getShippingAddress().getFullAddress())
+                                .city(order.getShippingAddress().getCity())
+                                .postalCode(order.getShippingAddress().getPostalCode())
+                                .latitude(order.getShippingAddress().getLatitude())
+                                .longitude(order.getShippingAddress().getLongitude())
                                 .build();
 
                 List<AdminOrderDetailResponse.AdminItemInfo> itemInfos = order.getItems().stream()
@@ -98,8 +110,14 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                 return AdminOrderDetailResponse.builder()
                                 .id(order.getId())
                                 .status(order.getStatus())
+                                .subtotal(subtotal)
+                                .shippingCost(order.getShippingCost())
+                                .serviceFee(1000.0)
                                 .totalPrice(order.getTotalPrice())
                                 .createdAt(order.getOrderDate())
+                                .deliveryDate(order.getDeliveryDate())
+                                .deliverySlot(order.getDeliverySlot())
+                                .distanceKm(order.getDistanceKm())
                                 .user(userInfo)
                                 .shippingAddress(addressInfo)
                                 .items(itemInfos)
@@ -135,6 +153,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
                                 .totalPrice(order.getTotalPrice())
                                 .status(order.getStatus())
                                 .createdAt(order.getOrderDate())
+                                .deliveryDate(order.getDeliveryDate())
+                                .deliverySlot(order.getDeliverySlot())
+                                .shippingCost(order.getShippingCost())
                                 .build();
         }
 }

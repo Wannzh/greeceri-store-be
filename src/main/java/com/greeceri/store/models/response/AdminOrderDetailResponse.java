@@ -1,8 +1,10 @@
 package com.greeceri.store.models.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.greeceri.store.models.enums.DeliverySlot;
 import com.greeceri.store.models.enums.OrderStatus;
 
 import lombok.Builder;
@@ -13,8 +15,17 @@ import lombok.Data;
 public class AdminOrderDetailResponse {
     private String id;
     private OrderStatus status;
+    private Double subtotal;
+    private Double shippingCost;
+    private Double serviceFee;
     private Double totalPrice;
     private LocalDateTime createdAt;
+
+    // Delivery info
+    private LocalDate deliveryDate;
+    private DeliverySlot deliverySlot;
+    private Double distanceKm;
+
     private AdminUserInfo user;
     private AdminAddressInfo shippingAddress;
     private List<AdminItemInfo> items;
@@ -32,6 +43,10 @@ public class AdminOrderDetailResponse {
         private String receiverName;
         private String phoneNumber;
         private String fullAddress;
+        private String city;
+        private String postalCode;
+        private Double latitude;
+        private Double longitude;
     }
 
     @Data

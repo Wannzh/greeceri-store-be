@@ -1,7 +1,9 @@
 package com.greeceri.store.models.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.greeceri.store.models.enums.DeliverySlot;
 import com.greeceri.store.models.enums.OrderStatus;
 
 import lombok.Builder;
@@ -15,4 +17,9 @@ public class AdminOrderSummaryResponse {
     private Double totalPrice;
     private OrderStatus status;
     private LocalDateTime createdAt;
+
+    // Shipping info
+    private LocalDate deliveryDate;
+    private DeliverySlot deliverySlot;
+    private Double shippingCost;
 }
