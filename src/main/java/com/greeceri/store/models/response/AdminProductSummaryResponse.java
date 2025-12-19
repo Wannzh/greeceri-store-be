@@ -12,6 +12,7 @@ public class AdminProductSummaryResponse {
     private Double price;
     private Integer stock;
     private String imageUrl;
+    private String unit;
     private String categoryName;
     private Long categoryId;
 }

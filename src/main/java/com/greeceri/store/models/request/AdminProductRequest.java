@@ -22,6 +22,9 @@ public class AdminProductRequest {
 
     private String imageUrl;
 
+    // Unit satuan produk (contoh: kg, ikat, pak, 250gr)
+    private String unit;
+
     @NotNull(message = "Category ID cannot be empty")
     private Long categoryId; // Kita hanya perlu ID kategori
 }

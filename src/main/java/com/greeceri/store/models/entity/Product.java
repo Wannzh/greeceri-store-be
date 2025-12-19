@@ -41,10 +41,13 @@ public class Product {
 
     private String imageUrl;
 
+    // Unit satuan produk (contoh: kg, ikat, pak, 250gr, 500gr)
+    private String unit;
+
     // Relasi to Category
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     @JsonIgnore
     private Category category;
-    
+
 }

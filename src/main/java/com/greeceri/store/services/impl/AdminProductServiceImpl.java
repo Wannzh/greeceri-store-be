@@ -53,6 +53,7 @@ public class AdminProductServiceImpl implements AdminProductService {
                                 .price(request.getPrice())
                                 .stock(request.getStock())
                                 .imageUrl(request.getImageUrl())
+                                .unit(request.getUnit())
                                 .category(category)
                                 .build();
 
@@ -75,6 +76,7 @@ public class AdminProductServiceImpl implements AdminProductService {
                 productToUpdate.setPrice(request.getPrice());
                 productToUpdate.setStock(request.getStock());
                 productToUpdate.setImageUrl(request.getImageUrl());
+                productToUpdate.setUnit(request.getUnit());
                 productToUpdate.setCategory(category);
 
                 Product savedProduct = productRepository.save(productToUpdate);
@@ -98,6 +100,7 @@ public class AdminProductServiceImpl implements AdminProductService {
                                 .price(product.getPrice())
                                 .stock(product.getStock())
                                 .imageUrl(product.getImageUrl())
+                                .unit(product.getUnit())
                                 .categoryName(product.getCategory().getName())
                                 .categoryId(product.getCategory().getId())
                                 .build();
