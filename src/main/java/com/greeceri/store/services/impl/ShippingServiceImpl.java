@@ -96,8 +96,15 @@ public class ShippingServiceImpl implements ShippingService {
 
     @Override
     public boolean isValidDeliveryDate(LocalDate date) {
-        // Delivery date must be today or in the future
-        return date != null && !date.isBefore(LocalDate.now());
+        if (date == null) {
+            return false;
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate maxDate = today.plusDays(2); // Max H+2 (hari ini sampai 2 hari ke depan)
+
+        // Delivery date must be today or in the future, but not more than 2 days ahead
+        return !date.isBefore(today) && !date.isAfter(maxDate);
     }
 
     /**

@@ -68,4 +68,17 @@ public class OrderController {
         OrderResponse updated = orderService.confirmDelivery(currentUser, orderId);
         return ResponseEntity.ok(new GenericResponse<>(true, "Pesanan dikonfirmasi sudah diterima", updated));
     }
+
+    /**
+     * User cancels a pending payment order
+     * PUT /api/orders/my/{orderId}/cancel
+     */
+    @PutMapping("/my/{orderId}/cancel")
+    public ResponseEntity<GenericResponse<OrderResponse>> cancelOrder(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable String orderId) {
+        User currentUser = (User) currentUserDetails;
+        OrderResponse cancelled = orderService.cancelOrder(currentUser, orderId);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Pesanan berhasil dibatalkan", cancelled));
+    }
 }

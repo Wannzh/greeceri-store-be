@@ -18,4 +18,11 @@ public interface OrderService {
      * Only works for orders with SHIPPED status
      */
     OrderResponse confirmDelivery(User currentUser, String orderId);
+
+    /**
+     * User cancels a pending payment order
+     * Only works for orders with PENDING_PAYMENT status
+     * Cancels Xendit invoice and restores product stock
+     */
+    OrderResponse cancelOrder(User currentUser, String orderId);
 }

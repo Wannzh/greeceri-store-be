@@ -77,9 +77,10 @@ public class OrderServiceImpl implements OrderService {
 
         // === SHIPPING VALIDATIONS ===
 
-        // Validasi tanggal pengiriman
+        // Validasi tanggal pengiriman (H+0 sampai H+2)
         if (!shippingService.isValidDeliveryDate(request.getDeliveryDate())) {
-            throw new RuntimeException("Tanggal pengiriman tidak valid. Pilih tanggal hari ini atau setelahnya.");
+            throw new RuntimeException(
+                    "Tanggal pengiriman tidak valid. Pilih tanggal hari ini sampai maksimal 2 hari ke depan.");
         }
 
         // Validasi alamat dalam jangkauan pengiriman
@@ -170,6 +171,7 @@ public class OrderServiceImpl implements OrderService {
             params.put("description", "Payment for Greeceri Orders #" + savedOrder.getId());
             params.put("success_redirect_url", successRedirectUrl + "?orderId=" + savedOrder.getId());
             params.put("failure_redirect_url", failureRedirectUrl + "?orderId=" + savedOrder.getId());
+            params.put("invoice_duration", 3600); // 1 hour expiry (in seconds)
 
             Invoice invoice = Invoice.create(params);
             invoiceUrl = invoice.getInvoiceUrl();
@@ -239,6 +241,51 @@ public class OrderServiceImpl implements OrderService {
 
         // === SEND NOTIFICATION TO ADMIN ===
         notificationService.notifyOrderDelivered(savedOrder.getId());
+
+        return mapOrderToResponse(savedOrder, null);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(User currentUser, String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
+
+        // Validate ownership
+        if (!order.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Akses ditolak. Pesanan ini bukan milik Anda.");
+        }
+
+        // Only PENDING_PAYMENT orders can be cancelled by user
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new RuntimeException("Hanya pesanan dengan status PENDING_PAYMENT yang dapat dibatalkan.");
+        }
+
+        // Try to cancel Xendit invoice (optional - might fail if already expired)
+        if (order.getXenditInvoiceId() != null) {
+            try {
+                Invoice.expire(order.getXenditInvoiceId());
+            } catch (XenditException e) {
+                // Log but don't fail - invoice might already be expired
+                System.out.println("Failed to expire Xendit invoice: " + e.getMessage());
+            }
+        }
+
+        // Restore product stock
+        for (OrderItem item : order.getItems()) {
+            Product product = productRepository.findById(item.getProductId()).orElse(null);
+            if (product != null) {
+                product.setStock(product.getStock() + item.getQuantity());
+                productRepository.save(product);
+            }
+        }
+
+        // Update status to CANCELLED
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+
+        // Send notification to admin
+        notificationService.notifyOrderCancelled(savedOrder.getId(), "Dibatalkan oleh customer");
 
         return mapOrderToResponse(savedOrder, null);
     }
