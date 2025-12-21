@@ -27,6 +27,7 @@ import com.greeceri.store.repositories.AddressRepository;
 import com.greeceri.store.repositories.CartRepository;
 import com.greeceri.store.repositories.OrderRepository;
 import com.greeceri.store.repositories.ProductRepository;
+import com.greeceri.store.services.AdminNotificationService;
 import com.greeceri.store.services.OrderService;
 import com.greeceri.store.services.ShippingService;
 import com.xendit.exception.XenditException;
@@ -42,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository;
     private final ShippingService shippingService;
+    private final AdminNotificationService notificationService;
 
     // Payment Gateway
     @Value("${app.payment.redirect.success}")
@@ -184,6 +186,9 @@ public class OrderServiceImpl implements OrderService {
         cart.getItems().removeAll(itemsToCheckout);
         cartRepository.save(cart);
 
+        // === SEND NOTIFICATION TO ADMIN ===
+        notificationService.notifyNewOrder(savedOrder.getId(), currentUser.getName(), grandTotal);
+
         // Return DTO + PaymentUrl
         OrderResponse response = mapOrderToResponse(savedOrder, itemsSubtotal);
         response.setPaymentUrl(invoiceUrl);
@@ -230,6 +235,9 @@ public class OrderServiceImpl implements OrderService {
         // Update status to DELIVERED
         order.setStatus(OrderStatus.DELIVERED);
         Order savedOrder = orderRepository.save(order);
+
+        // === SEND NOTIFICATION TO ADMIN ===
+        notificationService.notifyOrderDelivered(savedOrder.getId());
 
         return mapOrderToResponse(savedOrder, null);
     }
