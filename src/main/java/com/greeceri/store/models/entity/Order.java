@@ -70,6 +70,9 @@ public class Order {
     // ID Transaksi dari Xendit (misal: Invoice ID)
     private String xenditInvoiceId;
 
+    // URL pembayaran dari Xendit
+    private String paymentUrl;
+
     // === DELIVERY FIELDS ===
 
     // Tanggal pengiriman yang dipilih user

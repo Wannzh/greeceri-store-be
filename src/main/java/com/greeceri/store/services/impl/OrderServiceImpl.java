@@ -178,8 +178,9 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Failed to create payment invoice:" + e.getMessage());
         }
 
-        // Update Order dengan Id Xendit
+        // Update Order dengan Id Xendit dan Payment URL
         savedOrder.setXenditInvoiceId(xenditInvoiceId);
+        savedOrder.setPaymentUrl(invoiceUrl);
         orderRepository.save(savedOrder);
 
         // Kosongkan Keranjang
@@ -287,6 +288,12 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         // Map Order with shipping fields
+        // Include paymentUrl only for PENDING_PAYMENT orders
+        String paymentUrlForResponse = null;
+        if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
+            paymentUrlForResponse = order.getPaymentUrl();
+        }
+
         return OrderResponse.builder()
                 .orderId(order.getId())
                 .status(order.getStatus())
@@ -300,6 +307,7 @@ public class OrderServiceImpl implements OrderService {
                 .deliverySlot(order.getDeliverySlot())
                 .shippingAddress(addressResponse)
                 .items(itemResponses)
+                .paymentUrl(paymentUrlForResponse)
                 .build();
     }
 }
