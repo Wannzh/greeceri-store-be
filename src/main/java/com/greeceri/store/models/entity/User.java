@@ -70,14 +70,17 @@ public class User implements UserDetails {
 
     private LocalDate dateOfBirth;
 
+    // Google OAuth fields
+    @Column(unique = true)
+    private String googleId;
+
+    private String profileImageUrl;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses;
 
-    @OneToOne(
-        mappedBy = "user",
-        cascade = CascadeType.ALL, // Jika User dihapus, maka cart ikut terhapus
-        fetch = FetchType.LAZY
-    )
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, // Jika User dihapus, maka cart ikut terhapus
+            fetch = FetchType.LAZY)
     @JsonIgnore
     private Cart cart;
 

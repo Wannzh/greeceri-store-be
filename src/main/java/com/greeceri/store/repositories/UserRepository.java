@@ -17,6 +17,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 
         Optional<User> findByEmail(String email);
 
+        Optional<User> findByGoogleId(String googleId);
+
         Optional<User> findByVerificationToken(String token);
 
         // Native query for admin user list with pagination, search, and role filter
