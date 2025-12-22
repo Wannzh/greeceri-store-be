@@ -1,5 +1,10 @@
 package com.greeceri.store.models.entity;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -35,8 +40,14 @@ public class CartItem {
     @JsonIgnore
     private Cart cart;
 
-    @ManyToOne(fetch = FetchType.EAGER) // EAGER untuk data produk langsung ter-load
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

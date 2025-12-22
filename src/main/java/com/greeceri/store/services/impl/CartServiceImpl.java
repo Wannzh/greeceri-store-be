@@ -1,6 +1,7 @@
 package com.greeceri.store.services.impl;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,25 +57,33 @@ public class CartServiceImpl implements CartService {
         Optional<CartItem> existingItemOpt = cartItemRepository.findByCartAndProduct(cart, product);
 
         if (existingItemOpt.isPresent()) {
-            // Produk sudah ada
+            // Produk sudah ada - tambahkan quantity (bukan replace)
             CartItem existingItem = existingItemOpt.get();
 
             if (request.getQuantity() <= 0) {
-                // Remove jika kuantitas 0
+                // Remove jika kuantitas 0 atau negatif
                 cartItemRepository.delete(existingItem);
             } else {
-                // Update kuantitas di cart
-                existingItem.setQuantity(request.getQuantity());
+                // Tambahkan quantity ke item yang sudah ada
+                int newQuantity = existingItem.getQuantity() + request.getQuantity();
+
+                // Validasi stock
+                if (product.getStock() < newQuantity) {
+                    throw new RuntimeException("Stok tidak cukup. Stok tersedia: " + product.getStock()
+                            + ", di keranjang: " + existingItem.getQuantity());
+                }
+
+                existingItem.setQuantity(newQuantity);
                 cartItemRepository.save(existingItem);
             }
         } else {
             // new produk
             if (request.getQuantity() > 0) {
                 CartItem newItem = CartItem.builder()
-                    .cart(cart)
-                    .product(product)
-                    .quantity(request.getQuantity())
-                    .build();
+                        .cart(cart)
+                        .product(product)
+                        .quantity(request.getQuantity())
+                        .build();
                 cartItemRepository.save(newItem);
             }
         }
@@ -82,7 +91,7 @@ public class CartServiceImpl implements CartService {
         // Muat ulang cart dari DB untuk mendapatkan data terbaru
         Cart updatedCart = cartRepository.findByUser(currentUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
-                
+
         return mapCartToResponse(updatedCart);
     }
 
@@ -135,7 +144,12 @@ public class CartServiceImpl implements CartService {
         double grandTotal = 0.0;
         int totalItems = 0;
 
-        for (CartItem item : cart.getItems()) {
+        // Sort items by updatedAt DESC (terbaru di atas)
+        List<CartItem> sortedItems = cart.getItems().stream()
+                .sorted(Comparator.comparing(CartItem::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+
+        for (CartItem item : sortedItems) {
             double subTotal = item.getProduct().getPrice() * item.getQuantity();
             itemResponses.add(CartItemResponse.builder()
                     .cartItemId(item.getId())
