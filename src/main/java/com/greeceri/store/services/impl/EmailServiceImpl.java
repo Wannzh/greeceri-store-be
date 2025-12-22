@@ -1,59 +1,50 @@
 package com.greeceri.store.services.impl;
 
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.greeceri.store.services.EmailService;
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
 
-    @Value("${sendgrid.from.email}")
+    private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.from.email}")
     private String fromEmail;
 
-    @Value("${sendgrid.from.name}")
+    @Value("${spring.mail.from.name}")
     private String fromName;
 
     @Override
     public void sendEmail(String toEmail, String subject, String body) {
-        Email from = new Email(fromEmail, fromName);
-        Email to = new Email(toEmail);
-        Content content = new Content("text/html", body);
-        Mail mail = new Mail(from, subject, to, content);
-
-        SendGrid sg = new SendGrid(sendGridApiKey);
-        Request request = new Request();
-
         try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            Response response = sg.api(request);
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(body, true); // true = HTML
 
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                log.info("Verification email successfully sent to {}", toEmail);
-            } else {
-                log.warn("Failed to send email to {}. Status: {}, Body: {}",
-                        toEmail, response.getStatusCode(), response.getBody());
-            }
+            mailSender.send(message);
+            log.info("Email successfully sent to {}", toEmail);
 
-        } catch (IOException ex) {
-            log.error("Error while sending email to {}: {}", toEmail, ex.getMessage());
+        } catch (MessagingException e) {
+            log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error while sending email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Error sending email: " + e.getMessage());
         }
     }
 }

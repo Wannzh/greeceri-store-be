@@ -100,10 +100,10 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Mail -->
+		<!-- Mail (Brevo SMTP) -->
 		<dependency>
-			<groupId>com.sendgrid</groupId>
-			<artifactId>sendgrid-java</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
 		<!-- Payment Gateway Xendit -->
