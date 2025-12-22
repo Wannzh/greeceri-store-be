@@ -48,14 +48,15 @@ public interface UserRepository extends JpaRepository<User, String> {
                         "com.greeceri.store.models.enums.OrderStatus.SHIPPED, com.greeceri.store.models.enums.OrderStatus.DELIVERED)")
         Double sumTotalSpentByUserId(@Param("userId") String userId);
 
-        // User growth - count new users per month (last 12 months)
-        @Query(value = "SELECT TO_CHAR(verification_token_expiry, 'Mon YYYY') as month, " +
+        // User growth - count verified users per month (last 12 months)
+        @Query(value = "SELECT TO_CHAR(joined_at, 'Mon YYYY') as month, " +
                         "COUNT(*) as count " +
                         "FROM users " +
-                        "WHERE verification_token_expiry IS NOT NULL " +
-                        "AND verification_token_expiry >= NOW() - INTERVAL '12 months' " +
-                        "GROUP BY TO_CHAR(verification_token_expiry, 'Mon YYYY'), " +
-                        "DATE_TRUNC('month', verification_token_expiry) " +
-                        "ORDER BY DATE_TRUNC('month', verification_token_expiry) ASC", nativeQuery = true)
+                        "WHERE enabled = true " +
+                        "AND joined_at IS NOT NULL " +
+                        "AND joined_at >= NOW() - INTERVAL '12 months' " +
+                        "GROUP BY TO_CHAR(joined_at, 'Mon YYYY'), " +
+                        "DATE_TRUNC('month', joined_at) " +
+                        "ORDER BY DATE_TRUNC('month', joined_at) ASC", nativeQuery = true)
         List<Object[]> findUserGrowthByMonth();
 }
