@@ -97,6 +97,42 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    public CartResponse updateCartItemQuantity(User currentUser, Long cartItemId, int quantity) {
+        Cart cart = getOrCreateCart(currentUser);
+
+        // Validasi cart item
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Item tidak ditemukan di keranjang"));
+
+        // Validasi ownership
+        if (!cartItem.getCart().getId().equals(cart.getId())) {
+            throw new RuntimeException("Akses ditolak. Item ini bukan milik Anda.");
+        }
+
+        // Jika quantity <= 0, hapus item
+        if (quantity <= 0) {
+            cartItemRepository.delete(cartItem);
+        } else {
+            // Validasi stock
+            Product product = cartItem.getProduct();
+            if (product.getStock() < quantity) {
+                throw new RuntimeException("Stok tidak cukup. Stok tersedia: " + product.getStock());
+            }
+
+            // Update quantity
+            cartItem.setQuantity(quantity);
+            cartItemRepository.save(cartItem);
+        }
+
+        // Refresh cart
+        Cart updatedCart = cartRepository.findByUser(currentUser)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        return mapCartToResponse(updatedCart);
+    }
+
+    @Override
+    @Transactional
     public CartResponse removeItemFromCart(User currentUser, Long cartItemId) {
         Cart cart = getOrCreateCart(currentUser);
 

@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.greeceri.store.models.entity.User;
@@ -27,7 +29,8 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping
-    public ResponseEntity<GenericResponse<CartResponse>> getMyCart(@AuthenticationPrincipal UserDetails currentUserDetails) {
+    public ResponseEntity<GenericResponse<CartResponse>> getMyCart(
+            @AuthenticationPrincipal UserDetails currentUserDetails) {
         User currentUser = (User) currentUserDetails;
         CartResponse cart = cartService.getCart(currentUser);
         return ResponseEntity.ok(new GenericResponse<>(true, "Cart retrieved successfully", cart));
@@ -41,6 +44,20 @@ public class CartController {
 
         CartResponse updated = cartService.addItemToCart(currentUser, request);
         return ResponseEntity.ok(new GenericResponse<>(true, "Item added/updated successfully", updated));
+    }
+
+    /**
+     * Update cart item quantity (for +/- buttons)
+     * PUT /api/cart/item/{cartItemId}?quantity=5
+     */
+    @PutMapping("/item/{cartItemId}")
+    public ResponseEntity<GenericResponse<CartResponse>> updateCartItemQuantity(
+            @AuthenticationPrincipal UserDetails currentUserDetails,
+            @PathVariable Long cartItemId,
+            @RequestParam int quantity) {
+        User currentUser = (User) currentUserDetails;
+        CartResponse updated = cartService.updateCartItemQuantity(currentUser, cartItemId, quantity);
+        return ResponseEntity.ok(new GenericResponse<>(true, "Quantity updated successfully", updated));
     }
 
     @DeleteMapping("/item/{cartItemId}")
