@@ -58,6 +58,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .phoneNumber(user.getPhoneNumber())
                 .gender(user.getGender())
                 .dateOfBirth(user.getDateOfBirth())
+                .profileImageUrl(user.getProfileImageUrl())
+                .joinedAt(user.getJoinedAt())
                 .build();
     }
 }
