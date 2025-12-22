@@ -53,7 +53,7 @@ public class SecurityConfig {
                                                                 "/api/user/password")
                                                 .hasAnyAuthority("ADMIN", "USER")
 
-                                                // User - termasuk shipping endpoints
+                                                // User - termasuk shipping dan wishlist endpoints
                                                 .requestMatchers(
                                                                 "/api/user/address",
                                                                 "/api/user/address/**",
@@ -61,7 +61,9 @@ public class SecurityConfig {
                                                                 "/api/cart/**",
                                                                 "/api/orders/**",
                                                                 "/api/shipping/slots",
-                                                                "/api/shipping/validate-address")
+                                                                "/api/shipping/validate-address",
+                                                                "/api/wishlist",
+                                                                "/api/wishlist/**")
                                                 .hasAnyAuthority("USER")
 
                                                 // Admin

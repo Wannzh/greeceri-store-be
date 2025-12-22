@@ -139,8 +139,14 @@ public class OrderServiceImpl implements OrderService {
             newOrder.getItems().add(orderItem);
 
             // Update Stok Produk
-            product.setStock(product.getStock() - cartItem.getQuantity());
+            int newStock = product.getStock() - cartItem.getQuantity();
+            product.setStock(newStock);
             productRepository.save(product);
+
+            // Check for low stock and notify admin (threshold: 10)
+            if (newStock <= 10 && newStock > 0) {
+                notificationService.notifyLowStock(product.getId(), product.getName(), newStock);
+            }
 
             itemsSubtotal += (product.getPrice() * cartItem.getQuantity());
         }
