@@ -1,7 +1,6 @@
 package com.greeceri.store.controllers.product;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,14 +21,12 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<GenericResponse<List<Product>>> getAllProducts(
-            @RequestParam(required = false) Long categoryId) {
-        List<Product> products;
-        if (categoryId != null) {
-            products = productService.getProductsByCategoryId(categoryId);
-        } else {
-            products = productService.getAllProducts();
-        }
+    public ResponseEntity<GenericResponse<Page<Product>>> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword) {
+        Page<Product> products = productService.getProducts(page, size, categoryId, keyword);
         return ResponseEntity.ok(new GenericResponse<>(true, "Products retrieved successfully", products));
     }
 

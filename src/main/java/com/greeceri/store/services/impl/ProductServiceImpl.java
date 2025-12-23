@@ -2,6 +2,9 @@ package com.greeceri.store.services.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.greeceri.store.models.entity.Product;
@@ -18,6 +21,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
+    }
+
+    @Override
+    public Page<Product> getProducts(int page, int size, Long categoryId, String keyword) {
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findAllWithFilter(categoryId, keyword, pageable);
     }
 
     @Override
