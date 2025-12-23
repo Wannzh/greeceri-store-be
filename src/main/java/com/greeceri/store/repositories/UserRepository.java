@@ -48,11 +48,13 @@ public interface UserRepository extends JpaRepository<User, String> {
                         "com.greeceri.store.models.enums.OrderStatus.SHIPPED, com.greeceri.store.models.enums.OrderStatus.DELIVERED)")
         Double sumTotalSpentByUserId(@Param("userId") String userId);
 
-        // User growth - count verified users per month (last 12 months)
+        // User growth - count verified users per month (last 12 months), excluding
+        // admins
         @Query(value = "SELECT TO_CHAR(joined_at, 'Mon YYYY') as month, " +
                         "COUNT(*) as count " +
                         "FROM users " +
                         "WHERE enabled = true " +
+                        "AND role = 'USER' " +
                         "AND joined_at IS NOT NULL " +
                         "AND joined_at >= NOW() - INTERVAL '12 months' " +
                         "GROUP BY TO_CHAR(joined_at, 'Mon YYYY'), " +
