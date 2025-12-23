@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 import com.greeceri.store.models.entity.Product;
+import com.greeceri.store.models.response.PublicBestSellerResponse;
 
 public interface ProductService {
     List<Product> getAllProducts();
@@ -14,4 +15,6 @@ public interface ProductService {
     Product getProductById(Long productId);
 
     List<Product> getProductsByCategoryId(Long categoryId);
+
+    List<PublicBestSellerResponse> getBestSellersThisWeek(int limit);
 }

@@ -25,4 +25,18 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             "ORDER BY totalSold DESC " +
             "LIMIT :limit", nativeQuery = true)
     List<Object[]> findBestSellers(@Param("limit") int limit);
+
+    // Best sellers this week - for public endpoint
+    @Query(value = "SELECT oi.product_id as productId, oi.product_name as productName, " +
+            "p.image_url as imageUrl, p.price as price, " +
+            "SUM(oi.quantity) as totalSold " +
+            "FROM order_items oi " +
+            "JOIN orders o ON o.id = oi.order_id " +
+            "LEFT JOIN products p ON p.id = oi.product_id " +
+            "WHERE o.status IN ('PAID', 'SHIPPED', 'DELIVERED') " +
+            "AND o.order_date >= NOW() - INTERVAL '7 days' " +
+            "GROUP BY oi.product_id, oi.product_name, p.image_url, p.price " +
+            "ORDER BY totalSold DESC " +
+            "LIMIT :limit", nativeQuery = true)
+    List<Object[]> findBestSellersThisWeek(@Param("limit") int limit);
 }
