@@ -13,7 +13,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry corsRegistry) {
                 corsRegistry.addMapping("/**")
-                        .allowedOriginPatterns("http://localhost:5173", "https://greeceri.store")
+                        .allowedOriginPatterns("http://localhost:5173", "https://greeceri.store", "https://www.greeceri.store")
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS") 
                         .allowedHeaders("*")
                         .allowCredentials(true);
