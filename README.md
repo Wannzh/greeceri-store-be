@@ -19,7 +19,7 @@ Backend API untuk aplikasi e-commerce Greeceri Store berbasis **Spring Boot 3**.
 
 | Teknologi | Versi |
 |-----------|-------|
-| Java | 17 |
+| Java | 21 |
 | Spring Boot | 3.x |
 | PostgreSQL | 14+ |
 | Maven | 3.8+ |
