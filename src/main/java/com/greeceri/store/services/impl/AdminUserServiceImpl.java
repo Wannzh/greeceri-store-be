@@ -52,7 +52,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .enabled(user.isEnabled())
-                .createdAt(user.getVerificationTokenExpiry())
+                .joinedAt(user.getJoinedAt())
                 .phoneNumber(user.getPhoneNumber())
                 .gender(user.getGender())
                 .dateOfBirth(user.getDateOfBirth())
@@ -87,7 +87,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .enabled(user.isEnabled())
-                .createdAt(user.getVerificationTokenExpiry())
+                .joinedAt(user.getJoinedAt())
                 .totalOrders(totalOrders)
                 .build();
     }

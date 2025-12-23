@@ -15,6 +15,6 @@ public class AdminUserSummaryResponse {
     private String email;
     private Role role;
     private boolean enabled;
-    private LocalDateTime createdAt;
+    private LocalDateTime joinedAt;
     private Long totalOrders;
 }

@@ -17,7 +17,7 @@ public class AdminUserDetailResponse {
     private String email;
     private Role role;
     private boolean enabled;
-    private LocalDateTime createdAt;
+    private LocalDateTime joinedAt;
     private String phoneNumber;
     private Gender gender;
     private LocalDate dateOfBirth;
